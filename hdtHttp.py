@@ -2,12 +2,17 @@ import requests
 import logging
 import json
 
+
+HDG_TEST_STEP_1_MOD_TEST = "module-test"
+
+
 class HttpReq:
     def __init__(self, host):
         self.host = host
         self.url = "http://" + host + "/cgi-bin/luci"
         self.http_get_timeout = 1
-
+        self.step = ""
+        self.test_list = {HDG_TEST_STEP_1_MOD_TEST: self.mod_check}
 
     def gateway_login(self):
         data = {"luci_username": "root", "luci_password": ""}
@@ -43,27 +48,46 @@ class HttpReq:
             logging.error("connection timeout")
             self.handle_error()
 
-    def mod_check_pingcheck(self, resp):
+    def mod_check_pingcheck(self, resp, action):
         # {"status":"OK","ret":"PING CHECK SUCCESS","action":"pingcheck","value":"001"}
         logging.debug(resp)
         ret_json = json.loads(resp)
         logging.debug(ret_json['ret'])
+        ret_str  = ret_json['ret']
+        errorindex = ret_str.find("ERROR")
+        if errorindex >= 0:
+            logging.error(self.step + " - " + action + " check error")
+            return False
+        else:
+            logging.debug(self.step + " - " + action + " check success")
+            return True
 
-    def mod_check_sn_check(self, resp):
+
+    def mod_check_sn_check(self, resp, action):
         # {"status":"OK","ret":"GET MOD INFO SUCCESS","action":"sn_check","value":"001"}
         logging.debug(resp)
+        self.mod_check_pingcheck(resp, action)
 
-    def mod_check_rssi(self, resp):
+    def mod_check_rssi(self, resp, action):
         # {"status":"OK","ret":"RSSI:18317","action":"rssi","value":"001"}
         logging.debug(resp)
+        ret_json = json.loads(resp)
+        logging.debug(ret_json['ret'])
+        ret_str = ret_json['ret']
+        rssi_v = int(ret_str.split(':')[1])
+        if rssi_v >= -45:
+            logging.error(self.step + " - " "rssi check error")
+        else:
+            logging.error(self.step + " - " "rssi check success")
 
-    def mod_check_reset(self, resp):
+    def mod_check_reset(self, resp, action):
         # {"status":"OK","ret":"MODULE RESET SUCCESS","action":"reset","value":"001"}
         logging.debug(resp)
+        self.mod_check_pingcheck(resp, action)
 
     def mod_check(self):
-        # mod_check_list = ['pingcheck', 'sn_check', 'rssi', 'reset']
-        mod_check_list = ['pingcheck']
+        mod_check_list = ['pingcheck', 'sn_check', 'rssi', 'reset']
+        #mod_check_list = ['pingcheck']
         mod_check_actions = {'pingcheck': self.mod_check_pingcheck,
                              'sn_check': self.mod_check_sn_check,
                              'rssi': self.mod_check_rssi,
@@ -72,7 +96,12 @@ class HttpReq:
         for check in mod_check_list:
             purl = self.furl + "/admin/factory/module_check/" + check
             p = self.http_get(purl, 5)
-            mod_check_actions[check](p.text)
+            mod_check_actions[check](p.text, check)
 
     def handle_error(self):
         logging.error("get error")
+
+    def test_start(self):
+        for (step, func) in self.test_list.items():
+            self.step = step;
+            func()

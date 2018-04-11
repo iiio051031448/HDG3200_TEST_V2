@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
 req = http.HttpReq(host)
 req.gatewaydetect()
-req.mod_check()
+req.test_start()
 
 
 '''
