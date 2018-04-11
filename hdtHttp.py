@@ -4,6 +4,7 @@ import json
 
 
 HDG_TEST_STEP_1_MOD_TEST = "module-test"
+HDG_TEST_STEP_2_GATEWAY_TEST = "gateway-test"
 
 
 class HttpReq:
@@ -12,7 +13,8 @@ class HttpReq:
         self.url = "http://" + host + "/cgi-bin/luci"
         self.http_get_timeout = 1
         self.step = ""
-        self.test_list = {HDG_TEST_STEP_1_MOD_TEST: self.mod_check}
+        self.test_list = {HDG_TEST_STEP_1_MOD_TEST: self.mod_check,
+                          HDG_TEST_STEP_2_GATEWAY_TEST: self.gateway_check}
 
     def gateway_login(self):
         data = {"luci_username": "root", "luci_password": ""}
@@ -47,6 +49,7 @@ class HttpReq:
         except requests.exceptions.Timeout:
             logging.error("connection timeout")
             self.handle_error()
+            #TODO: how do do with this
 
     def mod_check_pingcheck(self, resp, action):
         # {"status":"OK","ret":"PING CHECK SUCCESS","action":"pingcheck","value":"001"}
@@ -98,10 +101,61 @@ class HttpReq:
             p = self.http_get(purl, 5)
             mod_check_actions[check](p.text, check)
 
+    def gateway_port_check(self):
+        purl = self.furl + "/admin/factory/" + "port_test"
+        p = self.http_get(purl, 5)
+        logging.debug(p.text)
+
+        resp_json = json.loads(p.text)
+        # ret = resp_json["ret"]
+        if int(resp_json["ret"]) == 0:
+            logging.debug("port check success")
+            return True
+        else:
+            logging.debug("port check failed.")
+            return False
+
+
+    def _gateway_led_check_set_led_color(self, color):
+        purl = self.furl + "/admin/factory/led_test/" + color
+        p = self.http_get(purl, 5)
+        if not p.text:
+            logging.error("set led color failed")
+            return False
+        logging.debug(p.text)
+        resp_json = json.loads(p.text)
+        # ret = resp_json["ret"]
+        if int(resp_json["ret"]) == 0:
+            logging.debug("set led color to [" + color + "] success")
+            return True
+        else:
+            logging.debug("set led color to [" + color + "] faild")
+            return False
+
+    def gateway_led_check(self):
+        led_color_list = ["red", "green", "blue"]
+        for color in led_color_list:
+            if self._gateway_led_check_set_led_color(color):
+                # wait user input
+                logging.debug("set color over")
+            else:
+                logging.debug("set color failed.")
+                return False
+
+
+
+    def gateway_check(self):
+        logging.debug("-")
+        self.gateway_port_check()
+        self.gateway_led_check()
+
     def handle_error(self):
         logging.error("get error")
 
     def test_start(self):
-        for (step, func) in self.test_list.items():
-            self.step = step;
-            func()
+       # for (step, func) in self.test_list.items():
+       #     self.step = step
+       #     func()
+
+       # self.test_list[HDG_TEST_STEP_1_MOD_TEST]()
+       self.test_list[HDG_TEST_STEP_2_GATEWAY_TEST]()
