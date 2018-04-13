@@ -206,6 +206,7 @@ class Ui_MainWindow(object):
         self.test_thread=gw_test.MyThread() #msg with self
         self.test_thread.test_status_signal.connect(self.status_set)
         self.test_thread.test_step_signal.connect(self.updata_step)
+        self.test_thread.test_end_signal.connect(self.one_test_end)
         self.test_thread.start()
 
 
@@ -220,3 +221,20 @@ class Ui_MainWindow(object):
         for n, l in enumerate(gwmap.GatewayCheckListMap):
             if l["id"] == step_msg["step"]:
                 self.check_table_set_result(n, step_msg["result"], step_msg["info"])
+
+    def one_test_end(self, end_msg):
+        # end_msg : {"result": 0, "info" : "ALL SUCCESS"}
+        print("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
+        print("++++++++++++++++++++++")
+        for row in range(self.rowCount):
+            line = []
+            for column in range(self.ColumnCount):
+                # print("%d, %d" % (row, column))
+                item = self.check_list.item(row, column)
+                # line = line + " " + item.text()
+                if column == 2 and item.text() == "wait":
+                    break
+                line.extend([item.text()])
+            if column == 2:
+                break
+            print("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))

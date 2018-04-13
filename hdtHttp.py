@@ -76,8 +76,10 @@ class HttpReq:
         logging.debug(resp)
         if self.mod_check_pingcheck(resp, action):
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 0)
+            return True
         else:
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 1)
+            return False
 
     def mod_check_rssi(self, resp, action):
         # {"status":"OK","ret":"RSSI:18317","action":"rssi","value":"001"}
@@ -89,17 +91,21 @@ class HttpReq:
         if rssi_v >= -45:
             logging.error(self.step + " - " "rssi check error")
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 1, ret_str)
+            return False
         else:
             logging.error(self.step + " - " "rssi check success")
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 0)
+            return True
 
     def mod_check_reset(self, resp, action):
         # {"status":"OK","ret":"MODULE RESET SUCCESS","action":"reset","value":"001"}
         logging.debug(resp)
         if self.mod_check_pingcheck(resp, action):
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_REST, 0)
+            return True
         else:
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_REST, 1)
+            return False
 
     def mod_check(self):
         mod_check_list = ['pingcheck', 'sn_check', 'rssi', 'reset']
@@ -112,7 +118,10 @@ class HttpReq:
         for check in mod_check_list:
             purl = self.furl + "/admin/factory/module_check/" + check
             p = self.http_get(purl, 5)
-            mod_check_actions[check](p.text, check)
+            if not mod_check_actions[check](p.text, check):
+                return False
+        return True
+
 
     def gateway_port_check(self):
         purl = self.furl + "/admin/factory/" + "port_test"
@@ -155,6 +164,7 @@ class HttpReq:
                 # wait user input
                 logging.debug("set color over")
                 self.step_up_func(step_id, 0)
+                return True
             else:
                 logging.debug("set color failed.")
                 self.step_up_func(step_id, 1)
@@ -166,7 +176,8 @@ class HttpReq:
     def gateway_check(self):
         logging.debug("-")
         self.gateway_port_check()
-        self.gateway_led_check()
+        if not self.gateway_led_check():
+            return False
 
     def handle_error(self):
         logging.error("get error")
@@ -176,5 +187,9 @@ class HttpReq:
        #     self.step = step
        #     func()
 
-       self.test_list[HDG_TEST_STEP_1_MOD_TEST]()
-       self.test_list[HDG_TEST_STEP_2_GATEWAY_TEST]()
+        if not self.test_list[HDG_TEST_STEP_1_MOD_TEST]():
+            logging.debug("mod check failed.")
+            return False
+        if not self.test_list[HDG_TEST_STEP_2_GATEWAY_TEST]():
+            return False
+        return True
