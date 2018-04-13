@@ -143,27 +143,8 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "2"))
         __sortingEnabled = self.check_list.isSortingEnabled()
         self.check_list.setSortingEnabled(False)
-
-        self.check_list_map = gwmap.GatewayCheckListMap
-        #'''
-        for r, row_list in enumerate(self.check_list_map):
-            for c, item_v in enumerate(row_list["table_msg"]):
-                print(item_v)
-                print("%d, %d" % (r, c))
-
-                item = self.check_list.item(r, c)
-                row_list["table_items"].extend([item])
-                if item_v != None:
-                    if item_v == 0:
-                        item.setText(_translate("MainWindow", "wait"))
-                    else:
-                        item.setText(_translate("MainWindow", item_v))
-                else:
-                    item.setText(_translate("MainWindow", ""))
-
+        self.retranslateCheckListItemUi()
         self.check_list.setSortingEnabled(__sortingEnabled)
-
-
 
         self.groupBox.setTitle(_translate("MainWindow", "测试"))
         self.label.setText(_translate("MainWindow", "日期"))
@@ -177,6 +158,28 @@ class Ui_MainWindow(object):
         self.groupBox_2.setTitle(_translate("MainWindow", "信息"))
         self.label_3.setText(_translate("MainWindow", "状态"))
         self.lineEdit_3.setText(_translate("MainWindow", "就绪"))
+
+    def retranslateCheckListItemUi(self, reset=0):
+        _translate = QtCore.QCoreApplication.translate
+        self.check_list_map = gwmap.GatewayCheckListMap
+        row_back_color = QtGui.QColor(255, 255, 255)
+        for r, row_list in enumerate(self.check_list_map):
+            for c, item_v in enumerate(row_list["table_msg"]):
+                print(item_v)
+                print("%d, %d" % (r, c))
+
+                item = self.check_list.item(r, c)
+                if not reset: #only add to list at first init
+                    row_list["table_items"].extend([item])
+                item.setBackground(row_back_color)
+                if item_v != None:
+                    if item_v == 0:
+                        item.setText(_translate("MainWindow", "wait"))
+                    else:
+                        item.setText(_translate("MainWindow", item_v))
+                else:
+                    item.setText(_translate("MainWindow", ""))
+
 
     def check_table_set_result(self, index, result, info=None):
         _translate = QtCore.QCoreApplication.translate
@@ -204,6 +207,7 @@ class Ui_MainWindow(object):
         if self.test_thread:
             if not self.test_thread.isFinished():
                 print("测试还未完成，等几秒在继续")
+        self.retranslateCheckListItemUi()
         self.pBtTestStart.setEnabled(False)
         self.test_thread = gw_test.MyThread()  # msg with self
         self.test_thread.test_status_signal.connect(self.status_set)
