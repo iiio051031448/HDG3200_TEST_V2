@@ -100,25 +100,42 @@ class Ui_MainWindow(object):
 
 
         self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_2.setGeometry(QtCore.QRect(30, 360, 291, 131))
+        self.groupBox_2.setGeometry(QtCore.QRect(30, 360, 291, 191))
         self.groupBox_2.setObjectName("groupBox_2")
+
         self.label_3 = QtWidgets.QLabel(self.groupBox_2)
         self.label_3.setGeometry(QtCore.QRect(20, 30, 54, 12))
         self.label_3.setObjectName("label_3")
         self.lineEdit_3 = QtWidgets.QLineEdit(self.groupBox_2)
         self.lineEdit_3.setGeometry(QtCore.QRect(50, 30, 211, 20))
         self.lineEdit_3.setObjectName("lineEdit_3")
+
         self.progressBar = QtWidgets.QProgressBar(self.groupBox_2)
         self.progressBar.setGeometry(QtCore.QRect(50, 60, 211, 23))
-        self.progressBar.setProperty("value", 24)
+        self.progressBar.setProperty("value", 0)
         self.progressBar.setTextVisible(False)
         self.progressBar.setObjectName("progressBar")
+
         self.gatewayMac_label = QtWidgets.QLabel(self.groupBox_2)
         self.gatewayMac_label.setGeometry(QtCore.QRect(20, 90, 54, 12))
         self.gatewayMac_label.setObjectName("label_3")
         self.gatewayMac = QtWidgets.QLineEdit(self.groupBox_2)
         self.gatewayMac.setGeometry(QtCore.QRect(50, 90, 211, 20))
         self.gatewayMac.setObjectName("gatewayMac")
+
+        self.onetest_start_time_lable = QtWidgets.QLabel(self.groupBox_2)
+        self.onetest_start_time_lable.setGeometry(QtCore.QRect(20, 120, 54, 12))
+        self.onetest_start_time_lable.setObjectName("onetest_start_time_lable")
+        self.onetest_start_time_line = QtWidgets.QLineEdit(self.groupBox_2)
+        self.onetest_start_time_line.setGeometry(QtCore.QRect(80, 120, 181, 20))
+        self.onetest_start_time_line.setObjectName("onetest_start_time_line")
+
+        self.onetest_end_time_lable = QtWidgets.QLabel(self.groupBox_2)
+        self.onetest_end_time_lable.setGeometry(QtCore.QRect(20, 150, 54, 12))
+        self.onetest_end_time_lable.setObjectName("onetest_end_time_lable")
+        self.onetest_end_time_line = QtWidgets.QLineEdit(self.groupBox_2)
+        self.onetest_end_time_line.setGeometry(QtCore.QRect(80, 150, 181, 20))
+        self.onetest_end_time_line.setObjectName("onetest_end_time_line")
 
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -166,6 +183,10 @@ class Ui_MainWindow(object):
         self.lineEdit_3.setText(_translate("MainWindow", "就绪"))
         self.gatewayMac_label.setText(_translate("MainWindow", "MAC"))
         self.gatewayMac.setText(_translate("MainWindow", "-----"))
+        self.onetest_start_time_lable.setText(_translate("MainWindow", "开始时间"))
+        self.onetest_start_time_line.setText(_translate("MainWindow", ""))
+        self.onetest_end_time_lable.setText(_translate("MainWindow", "结束时间"))
+        self.onetest_end_time_line.setText(_translate("MainWindow", ""))
 
     def retranslateCheckListItemUi(self, reset=0):
         _translate = QtCore.QCoreApplication.translate
@@ -188,6 +209,12 @@ class Ui_MainWindow(object):
                 else:
                     item.setText(_translate("MainWindow", ""))
 
+    def resetGatewayStatus(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.gatewayMac.setText(_translate("MainWindow", ""))
+        self.onetest_start_time_line.setText(_translate("MainWindow", ""))
+        self.onetest_end_time_line.setText(_translate("MainWindow", ""))
+
     def check_table_set_result(self, index, result, info=None):
         _translate = QtCore.QCoreApplication.translate
         if result == 0:
@@ -202,6 +229,7 @@ class Ui_MainWindow(object):
             item.setBackground(row_back_color)
         if info:
             self.check_list_map[index]["table_items"][3].setText(_translate("MainWindow", info))
+        self.progressBar.setProperty("value", (index / len( self.check_list_map) * 100))
 
     def check_table_set_success(self, index):
         self.check_table_set_result(index, 0)
@@ -215,6 +243,7 @@ class Ui_MainWindow(object):
             if not self.test_thread.isFinished():
                 print("测试还未完成，等几秒在继续")
         self.retranslateCheckListItemUi()
+        self.resetGatewayStatus()
         self.pBtTestStart.setEnabled(False)
         self.test_thread = gw_test.MyThread()  # msg with self
         self.test_thread.test_status_signal.connect(self.status_set)
@@ -229,6 +258,10 @@ class Ui_MainWindow(object):
             self.lineEdit_3.setText(_translate("MainWindow", status_msg["msg"]))
         elif status_msg["type"] == "gw_mac":
             self.gatewayMac.setText(_translate("MainWindow", status_msg["msg"]))
+        elif status_msg["type"] == "start_time":
+            self.onetest_start_time_line.setText(_translate("MainWindow", status_msg["msg"]))
+        elif status_msg["type"] == "end_time":
+            self.onetest_end_time_line.setText(_translate("MainWindow", status_msg["msg"]))
         # self.progressBar.setProperty("value", int(msg) % 100)
 
     def updata_step(self, step_msg):
@@ -244,6 +277,8 @@ class Ui_MainWindow(object):
         # end_msg : {"result": 0, "info" : "ALL SUCCESS"}
         print("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
         print("++++++++++++++++++++++")
+        print("开始时间：%s" % self.onetest_start_time_line.text())
+        print("结束时间：%s" % self.onetest_end_time_line.text())
         print("MAC:%s" % self.gatewayMac.text())
         for row in range(self.rowCount):
             line = []

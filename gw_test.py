@@ -42,18 +42,22 @@ class MyThread(QThread):
 
     def run(self):
         print("---")
+        # TODO: started with a test id(time + seq)
+        self.up_test_start_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         self.test_status("GatewayTestThread start")
         self.req = http.HttpReq(host,  self.test_step)
         self.test_status("检测网关中")
         self.req.gatewaydetect()
-        mac= self.req.gateway_get_mac()
+        mac=self.req.gateway_get_mac()
         logging.debug("gateway MAC : %s", mac)
         self.up_gw_mac(mac)
 
         # TODO: if failed.
 
         self.test_status("检测到网关开始测试")
-        if self.req.test_start():
+        test_result = self.req.test_start()
+        self.up_test_end_time(time.strftime("%Y-%m-%d %H:%M:%S"))
+        if test_result:
             logging.debug("test success.")
             self.end_test(0, "ALL TEST SUCCESS")
             #return True
@@ -72,6 +76,11 @@ class MyThread(QThread):
     def up_gw_mac(self, mac):
         self.send_status("gw_mac", mac)
 
+    def up_test_start_time(self, start_time):
+        self.send_status("start_time", start_time)
+
+    def up_test_end_time(self, end_time):
+        self.send_status("end_time", end_time)
 
     def test_step(self, step, result, info=None):
         step_msg = {"step": step, "result": result, "info": info}
