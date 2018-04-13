@@ -7,8 +7,34 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+import threading
+import time
+import gw_test
+import gw_check_map as gwmap
+
+
+class GatewayTestThread(QtCore.QThread):
+    def __init__(self, parent=None):
+        #self.win = win
+        super().__init__(parent)
+
+    def run(self):
+        #self.win.status_set("GatewayTestThread start")
+        #test = GatewayTest()
+        #test.run(self.win)
+        for i in range(1000):
+            #self.sec_changed_signal.emit(i)  # 发射信号
+            # time.sleep(1)
+            print("---")
+
 
 class Ui_MainWindow(object):
+    # def __init__(self):
+        # self.test_thread = MyThread()
+        # self.test_thread.start()
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(835, 598)
@@ -74,6 +100,21 @@ class Ui_MainWindow(object):
         self.pushButton_3.setObjectName("pushButton_3")
 
 
+        self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
+        self.groupBox_2.setGeometry(QtCore.QRect(30, 360, 291, 101))
+        self.groupBox_2.setObjectName("groupBox_2")
+        self.label_3 = QtWidgets.QLabel(self.groupBox_2)
+        self.label_3.setGeometry(QtCore.QRect(20, 30, 54, 12))
+        self.label_3.setObjectName("label_3")
+        self.lineEdit_3 = QtWidgets.QLineEdit(self.groupBox_2)
+        self.lineEdit_3.setGeometry(QtCore.QRect(50, 30, 211, 20))
+        self.lineEdit_3.setObjectName("lineEdit_3")
+        self.progressBar = QtWidgets.QProgressBar(self.groupBox_2)
+        self.progressBar.setGeometry(QtCore.QRect(50, 60, 211, 23))
+        self.progressBar.setProperty("value", 24)
+        self.progressBar.setTextVisible(False)
+        self.progressBar.setObjectName("progressBar")
+
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -84,10 +125,10 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
-
-
-
         self.retranslateUi(MainWindow)
+
+        self.pushButton.clicked.connect(self.start_test)
+
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -103,22 +144,7 @@ class Ui_MainWindow(object):
         __sortingEnabled = self.check_list.isSortingEnabled()
         self.check_list.setSortingEnabled(False)
 
-        self.check_list_map = [{"table_msg": ["项目", "子项", "结果", "信息"], "table_items": []},
-                          {"table_msg": ["1.1 模块测试-通信测试", None, 0, None], "table_items": []},
-                          {"table_msg": ["1.2 模块测试-SN测试", None, 0, None], "table_items": []},
-                          {"table_msg": ["1.3 模块测试-信号强度测试", None, 0, None], "table_items": []},
-                          {"table_msg": ["1.4 模块测试-重启测试", None, 0, None], "table_items": []},
-                          {"table_msg": ["2.1 设备测试-端口测试", None, 0, None], "table_items": []},
-                          {"table_msg": ["2.2 设备测试-灯光测试", "红", 0, None], "table_items": []},
-                          {"table_msg": ["", "绿", 0, None], "table_items": []},
-                          {"table_msg": ["", "蓝", 0, None], "table_items": []},
-                          {"table_msg": ["2.3 设备测试-按键测试", "RESET键", 0, None], "table_items": []},
-                          {"table_msg": ["", "SMARTCONFIG键", 0, None], "table_items": []},
-                          {"table_msg": ["3.1 系统测试-读取数据", None, 0, None], "table_items": []},
-                          {"table_msg": ["3.2 系统测试-校验MAC", None, 0, None], "table_items": []},
-                          {"table_msg": ["3.3 系统测试-写入SN", None, 0, None], "table_items": []},
-                          {"table_msg": ["4.1 结束测试-写入标记", None, 0, None], "table_items": []},
-                          {"table_msg": ["4.1 结束测试-写入标记", None, 0, None], "table_items": []}];
+        self.check_list_map = gwmap.GatewayCheckListMap
         #'''
         for r, row_list in enumerate(self.check_list_map):
             for c, item_v in enumerate(row_list["table_msg"]):
@@ -148,10 +174,12 @@ class Ui_MainWindow(object):
         self.pushButton_2.setText(_translate("MainWindow", "生产日志"))
         self.pushButton_3.setText(_translate("MainWindow", "查看日志"))
 
-    def check_table_set_result(self, MainWindow, index, result):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.groupBox_2.setTitle(_translate("MainWindow", "信息"))
+        self.label_3.setText(_translate("MainWindow", "状态"))
+        self.lineEdit_3.setText(_translate("MainWindow", "就绪"))
 
+    def check_table_set_result(self, index, result):
+        _translate = QtCore.QCoreApplication.translate
         if result == 0:
             row_back_color = QtGui.QColor(0, 180, 0)
             result_str = "成功"
@@ -163,8 +191,30 @@ class Ui_MainWindow(object):
         for item in self.check_list_map[index]["table_items"]:
             item.setBackground(row_back_color)
 
-    def check_table_set_success(self, MainWindow, index):
-        self.check_table_set_result(MainWindow, index, 0)
+    def check_table_set_success(self, index):
+        self.check_table_set_result(index, 0)
 
-    def check_table_set_failed(self, MainWindow, index):
-        self.check_table_set_result(MainWindow, index, 1)
+    def check_table_set_failed(self, index):
+        self.check_table_set_result(index, 1)
+
+    def start_test(self):
+        print("-")
+        #test_thread = threading.Thread(target=gw_test.GatewayTestThread, args=(self,))
+        #test_thread.start()
+        self.test_thread=gw_test.MyThread() #msg with self
+        self.test_thread.test_status_signal.connect(self.status_set)
+        self.test_thread.test_step_signal.connect(self.updata_step)
+        self.test_thread.start()
+
+
+    def status_set(self, msg):
+        _translate = QtCore.QCoreApplication.translate
+        self.lineEdit_3.setText(_translate("MainWindow", msg))
+        # self.progressBar.setProperty("value", int(msg) % 100)
+
+    def updata_step(self, step_msg):
+        # step_msg : {"step": 0, "result": 0}
+        print("step : %d, result : %d" % (step_msg["step"], step_msg["result"]))
+        for n, l in enumerate(gwmap.GatewayCheckListMap):
+            if l["id"] == step_msg["step"]:
+                self.check_table_set_result(n, step_msg["result"])

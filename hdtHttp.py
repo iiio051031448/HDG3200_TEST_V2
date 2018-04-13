@@ -2,7 +2,6 @@ import requests
 import logging
 import json
 
-
 HDG_TEST_STEP_1_MOD_TEST = "module-test"
 HDG_TEST_STEP_2_GATEWAY_TEST = "gateway-test"
 

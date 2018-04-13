@@ -1,14 +1,6 @@
 import logging
-import hdtHttp as http
 import win
 
-host = "192.168.69.134"
-
-url = "http://" + host + "/cgi-bin/luci"
-data = {"luci_username": "root", "luci_password": ""}
-
-
-headers = {'Content-Type' : 'application/x-www-form-urlencoded'}
 
 LOG_FORMAT="%(asctime)s - %(levelname)s - %(funcName)s - %(lineno)d - %(message)s "
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
@@ -16,10 +8,7 @@ logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 main_win = win.hdg3200_win()
 main_win.show_win()
 
-req = http.HttpReq(host)
-req.gatewaydetect()
-req.test_start()
-
+logging.debug("--------------- EXITTING ---------------")
 
 '''
 try:
