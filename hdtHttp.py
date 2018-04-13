@@ -35,7 +35,6 @@ class HttpReq:
         except requests.exceptions.Timeout:
             logging.debug("connection timeout")
 
-
     def gatewaydetect(self):
         while True:
             if self.gateway_login():
@@ -51,6 +50,19 @@ class HttpReq:
             logging.error("connection timeout")
             self.handle_error()
             #TODO: how do do with this
+
+    def gateway_get_mac(self):
+        purl = self.furl + "/admin/factory/mac_check"
+        # {"status":"OK","ret":[{"mac":"D0:6F:4A:F3:A4:BF","ifname":"ra"},{"mac":"D0:6F:4A:F3:A4:C0","ifname":"lan"},{"mac":"D0:6F:4A:F3:A4:C1","ifname":"wan"}],"value":"001"}
+        p = self.http_get(purl, 5)
+        print(p.text)
+        if p and p.text:
+            ret_json = json.loads(p.text)
+            if ret_json:
+                for it in ret_json['ret']:
+                    if it["ifname"] == "lan":
+                        return it["mac"]
+
 
     def mod_check_pingcheck(self, resp, action):
         # {"status":"OK","ret":"PING CHECK SUCCESS","action":"pingcheck","value":"001"}

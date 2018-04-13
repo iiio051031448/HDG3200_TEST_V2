@@ -32,7 +32,7 @@ def GatewayTestThread(win):
 '''
 
 class MyThread(QThread):
-    test_status_signal = pyqtSignal(str)  # 信号类型：int
+    test_status_signal = pyqtSignal(dict)  # 信号类型：int
     test_step_signal = pyqtSignal(dict)
     test_end_signal = pyqtSignal(dict)
 
@@ -46,6 +46,12 @@ class MyThread(QThread):
         self.req = http.HttpReq(host,  self.test_step)
         self.test_status("检测网关中")
         self.req.gatewaydetect()
+        mac= self.req.gateway_get_mac()
+        logging.debug("gateway MAC : %s", mac)
+        self.up_gw_mac(mac)
+
+        # TODO: if failed.
+
         self.test_status("检测到网关开始测试")
         if self.req.test_start():
             logging.debug("test success.")
@@ -56,8 +62,16 @@ class MyThread(QThread):
             self.end_test(1, "ERROR")
             #return False
 
+    def send_status(self, type, msg):
+        st_msg = {"type": type, "msg": msg}
+        self.test_status_signal.emit(st_msg)
+
     def test_status(self, msg):
-        self.test_status_signal.emit(msg)  # 发射信号
+        self.send_status("status", msg)
+
+    def up_gw_mac(self, mac):
+        self.send_status("gw_mac", mac)
+
 
     def test_step(self, step, result, info=None):
         step_msg = {"step": step, "result": result, "info": info}

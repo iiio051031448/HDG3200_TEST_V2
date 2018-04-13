@@ -100,7 +100,7 @@ class Ui_MainWindow(object):
 
 
         self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_2.setGeometry(QtCore.QRect(30, 360, 291, 101))
+        self.groupBox_2.setGeometry(QtCore.QRect(30, 360, 291, 131))
         self.groupBox_2.setObjectName("groupBox_2")
         self.label_3 = QtWidgets.QLabel(self.groupBox_2)
         self.label_3.setGeometry(QtCore.QRect(20, 30, 54, 12))
@@ -113,6 +113,12 @@ class Ui_MainWindow(object):
         self.progressBar.setProperty("value", 24)
         self.progressBar.setTextVisible(False)
         self.progressBar.setObjectName("progressBar")
+        self.gatewayMac_label = QtWidgets.QLabel(self.groupBox_2)
+        self.gatewayMac_label.setGeometry(QtCore.QRect(20, 90, 54, 12))
+        self.gatewayMac_label.setObjectName("label_3")
+        self.gatewayMac = QtWidgets.QLineEdit(self.groupBox_2)
+        self.gatewayMac.setGeometry(QtCore.QRect(50, 90, 211, 20))
+        self.gatewayMac.setObjectName("gatewayMac")
 
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -158,6 +164,8 @@ class Ui_MainWindow(object):
         self.groupBox_2.setTitle(_translate("MainWindow", "信息"))
         self.label_3.setText(_translate("MainWindow", "状态"))
         self.lineEdit_3.setText(_translate("MainWindow", "就绪"))
+        self.gatewayMac_label.setText(_translate("MainWindow", "MAC"))
+        self.gatewayMac.setText(_translate("MainWindow", "-----"))
 
     def retranslateCheckListItemUi(self, reset=0):
         _translate = QtCore.QCoreApplication.translate
@@ -179,7 +187,6 @@ class Ui_MainWindow(object):
                         item.setText(_translate("MainWindow", item_v))
                 else:
                     item.setText(_translate("MainWindow", ""))
-
 
     def check_table_set_result(self, index, result, info=None):
         _translate = QtCore.QCoreApplication.translate
@@ -215,9 +222,13 @@ class Ui_MainWindow(object):
         self.test_thread.test_end_signal.connect(self.one_test_end)
         self.test_thread.start()
 
-    def status_set(self, msg):
+    def status_set(self, status_msg):
+        # status_msg : {"type": "status", "msg": "testing ..."}
         _translate = QtCore.QCoreApplication.translate
-        self.lineEdit_3.setText(_translate("MainWindow", msg))
+        if status_msg["type"] == "status":
+            self.lineEdit_3.setText(_translate("MainWindow", status_msg["msg"]))
+        elif status_msg["type"] == "gw_mac":
+            self.gatewayMac.setText(_translate("MainWindow", status_msg["msg"]))
         # self.progressBar.setProperty("value", int(msg) % 100)
 
     def updata_step(self, step_msg):
@@ -233,6 +244,7 @@ class Ui_MainWindow(object):
         # end_msg : {"result": 0, "info" : "ALL SUCCESS"}
         print("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
         print("++++++++++++++++++++++")
+        print("MAC:%s" % self.gatewayMac.text())
         for row in range(self.rowCount):
             line = []
             column = 0

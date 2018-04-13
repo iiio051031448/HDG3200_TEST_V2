@@ -5,6 +5,8 @@ import win
 LOG_FORMAT="%(asctime)s - %(levelname)s - %(funcName)s - %(lineno)d - %(message)s "
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
+# TODO: only one test thread can be run, one time
+
 main_win = win.hdg3200_win()
 main_win.show_win()
 
