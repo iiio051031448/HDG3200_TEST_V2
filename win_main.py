@@ -31,9 +31,8 @@ class GatewayTestThread(QtCore.QThread):
 
 
 class Ui_MainWindow(object):
-    # def __init__(self):
-        # self.test_thread = MyThread()
-        # self.test_thread.start()
+    def __init__(self):
+        self.test_thread = None # msg with self
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -89,12 +88,12 @@ class Ui_MainWindow(object):
         self.lineEdit_2 = QtWidgets.QLineEdit(self.groupBox)
         self.lineEdit_2.setGeometry(QtCore.QRect(70, 70, 113, 20))
         self.lineEdit_2.setObjectName("lineEdit_2")
-        self.pushButton = QtWidgets.QPushButton(self.groupBox)
-        self.pushButton.setGeometry(QtCore.QRect(30, 120, 75, 23))
-        self.pushButton.setObjectName("pushButton")
-        self.pushButton_2 = QtWidgets.QPushButton(self.groupBox)
-        self.pushButton_2.setGeometry(QtCore.QRect(30, 180, 75, 23))
-        self.pushButton_2.setObjectName("pushButton_2")
+        self.pBtTestStart = QtWidgets.QPushButton(self.groupBox)
+        self.pBtTestStart.setGeometry(QtCore.QRect(30, 120, 75, 23))
+        self.pBtTestStart.setObjectName("pushButton")
+        self.pBtGenrateLogs = QtWidgets.QPushButton(self.groupBox)
+        self.pBtGenrateLogs.setGeometry(QtCore.QRect(30, 180, 75, 23))
+        self.pBtGenrateLogs.setObjectName("pushButton_2")
         self.pushButton_3 = QtWidgets.QPushButton(self.groupBox)
         self.pushButton_3.setGeometry(QtCore.QRect(30, 150, 75, 23))
         self.pushButton_3.setObjectName("pushButton_3")
@@ -127,7 +126,8 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.pushButton.clicked.connect(self.start_test)
+        self.pBtTestStart.clicked.connect(self.start_test)
+        self.pBtGenrateLogs.clicked.connect(self.generate_logs)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -170,8 +170,8 @@ class Ui_MainWindow(object):
         self.lineEdit.setText(_translate("MainWindow", "2018-04-12"))
         self.label_2.setText(_translate("MainWindow", "时间"))
         self.lineEdit_2.setText(_translate("MainWindow", "15:27:33"))
-        self.pushButton.setText(_translate("MainWindow", "开始测试"))
-        self.pushButton_2.setText(_translate("MainWindow", "生产日志"))
+        self.pBtTestStart.setText(_translate("MainWindow", "开始测试"))
+        self.pBtGenrateLogs.setText(_translate("MainWindow", "生产日志"))
         self.pushButton_3.setText(_translate("MainWindow", "查看日志"))
 
         self.groupBox_2.setTitle(_translate("MainWindow", "信息"))
@@ -201,14 +201,15 @@ class Ui_MainWindow(object):
 
     def start_test(self):
         print("-")
-        #test_thread = threading.Thread(target=gw_test.GatewayTestThread, args=(self,))
-        #test_thread.start()
-        self.test_thread=gw_test.MyThread() #msg with self
+        if self.test_thread:
+            if not self.test_thread.isFinished():
+                print("测试还未完成，等几秒在继续")
+        self.pBtTestStart.setEnabled(False)
+        self.test_thread = gw_test.MyThread()  # msg with self
         self.test_thread.test_status_signal.connect(self.status_set)
         self.test_thread.test_step_signal.connect(self.updata_step)
         self.test_thread.test_end_signal.connect(self.one_test_end)
         self.test_thread.start()
-
 
     def status_set(self, msg):
         _translate = QtCore.QCoreApplication.translate
@@ -222,12 +223,15 @@ class Ui_MainWindow(object):
             if l["id"] == step_msg["step"]:
                 self.check_table_set_result(n, step_msg["result"], step_msg["info"])
 
+
+
     def one_test_end(self, end_msg):
         # end_msg : {"result": 0, "info" : "ALL SUCCESS"}
         print("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
         print("++++++++++++++++++++++")
         for row in range(self.rowCount):
             line = []
+            column = 0
             for column in range(self.ColumnCount):
                 # print("%d, %d" % (row, column))
                 item = self.check_list.item(row, column)
@@ -238,3 +242,11 @@ class Ui_MainWindow(object):
             if column == 2:
                 break
             print("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))
+
+        self.pBtTestStart.setEnabled(True)
+        #if not self.test_thread.isFinished():
+        #    print("test_thread is still running")
+
+    def generate_logs(self):
+        if not self.test_thread.isFinished():
+            print("test_thread is still running")
