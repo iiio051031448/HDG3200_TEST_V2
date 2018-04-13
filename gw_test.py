@@ -42,19 +42,19 @@ class MyThread(QThread):
     def run(self):
         print("---")
         self.test_status("GatewayTestThread start")
-        self.req = http.HttpReq(host)
+        self.req = http.HttpReq(host,  self.test_step)
         self.test_status("检测网关中")
         self.req.gatewaydetect()
         self.test_status("检测到网关开始测试")
-        self.test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 0)
-        self.test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 0)
-        # self.req.test_start()
+        # self.test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 0)
+        # self.test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 0)
+        self.req.test_start()
 
     def test_status(self, msg):
         self.test_status_signal.emit(msg)  # 发射信号
 
-    def test_step(self, step, result):
-        step_msg = {"step": step, "result": result}
+    def test_step(self, step, result, info=None):
+        step_msg = {"step": step, "result": result, "info": info}
         # print("step : %d, result : %d" % (step_msg["step"], step_msg["result"]))
         self.test_step_signal.emit(step_msg)
 

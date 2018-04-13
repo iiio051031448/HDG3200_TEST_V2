@@ -1,19 +1,21 @@
 import requests
 import logging
 import json
+import gw_check_map as gwmap
 
 HDG_TEST_STEP_1_MOD_TEST = "module-test"
 HDG_TEST_STEP_2_GATEWAY_TEST = "gateway-test"
 
 
 class HttpReq:
-    def __init__(self, host):
+    def __init__(self, host, step_up_func):
         self.host = host
         self.url = "http://" + host + "/cgi-bin/luci"
         self.http_get_timeout = 1
         self.step = ""
         self.test_list = {HDG_TEST_STEP_1_MOD_TEST: self.mod_check,
                           HDG_TEST_STEP_2_GATEWAY_TEST: self.gateway_check}
+        self.step_up_func = step_up_func
 
     def gateway_login(self):
         data = {"luci_username": "root", "luci_password": ""}
@@ -59,16 +61,23 @@ class HttpReq:
         errorindex = ret_str.find("ERROR")
         if errorindex >= 0:
             logging.error(self.step + " - " + action + " check error")
+            if action == "pingcheck":
+                self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 1)
             return False
         else:
             logging.debug(self.step + " - " + action + " check success")
+            if action == "pingcheck":
+                self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 0)
             return True
 
 
     def mod_check_sn_check(self, resp, action):
         # {"status":"OK","ret":"GET MOD INFO SUCCESS","action":"sn_check","value":"001"}
         logging.debug(resp)
-        self.mod_check_pingcheck(resp, action)
+        if self.mod_check_pingcheck(resp, action):
+            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 0)
+        else:
+            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 1)
 
     def mod_check_rssi(self, resp, action):
         # {"status":"OK","ret":"RSSI:18317","action":"rssi","value":"001"}
@@ -79,13 +88,18 @@ class HttpReq:
         rssi_v = int(ret_str.split(':')[1])
         if rssi_v >= -45:
             logging.error(self.step + " - " "rssi check error")
+            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 1, ret_str)
         else:
             logging.error(self.step + " - " "rssi check success")
+            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 0)
 
     def mod_check_reset(self, resp, action):
         # {"status":"OK","ret":"MODULE RESET SUCCESS","action":"reset","value":"001"}
         logging.debug(resp)
-        self.mod_check_pingcheck(resp, action)
+        if self.mod_check_pingcheck(resp, action):
+            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_REST, 0)
+        else:
+            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_REST, 1)
 
     def mod_check(self):
         mod_check_list = ['pingcheck', 'sn_check', 'rssi', 'reset']
@@ -109,9 +123,11 @@ class HttpReq:
         # ret = resp_json["ret"]
         if int(resp_json["ret"]) == 0:
             logging.debug("port check success")
+            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_DEV_PORT, 0)
             return True
         else:
             logging.debug("port check failed.")
+            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_DEV_PORT, 1)
             return False
 
 
@@ -133,13 +149,17 @@ class HttpReq:
 
     def gateway_led_check(self):
         led_color_list = ["red", "green", "blue"]
+        step_id = gwmap.GATEWAY_CHECK_STEP_ID_DEV_LED_R
         for color in led_color_list:
             if self._gateway_led_check_set_led_color(color):
                 # wait user input
                 logging.debug("set color over")
+                self.step_up_func(step_id, 0)
             else:
                 logging.debug("set color failed.")
+                self.step_up_func(step_id, 1)
                 return False
+            step_id = step_id + 1
 
 
 
@@ -156,5 +176,5 @@ class HttpReq:
        #     self.step = step
        #     func()
 
-       # self.test_list[HDG_TEST_STEP_1_MOD_TEST]()
+       self.test_list[HDG_TEST_STEP_1_MOD_TEST]()
        self.test_list[HDG_TEST_STEP_2_GATEWAY_TEST]()

@@ -178,7 +178,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(_translate("MainWindow", "状态"))
         self.lineEdit_3.setText(_translate("MainWindow", "就绪"))
 
-    def check_table_set_result(self, index, result):
+    def check_table_set_result(self, index, result, info=None):
         _translate = QtCore.QCoreApplication.translate
         if result == 0:
             row_back_color = QtGui.QColor(0, 180, 0)
@@ -190,6 +190,8 @@ class Ui_MainWindow(object):
         self.check_list_map[index]["table_items"][2].setText(_translate("MainWindow", result_str))
         for item in self.check_list_map[index]["table_items"]:
             item.setBackground(row_back_color)
+        if info:
+            self.check_list_map[index]["table_items"][3].setText(_translate("MainWindow", info))
 
     def check_table_set_success(self, index):
         self.check_table_set_result(index, 0)
@@ -213,8 +215,8 @@ class Ui_MainWindow(object):
         # self.progressBar.setProperty("value", int(msg) % 100)
 
     def updata_step(self, step_msg):
-        # step_msg : {"step": 0, "result": 0}
+        # step_msg : {"step": 0, "result": 0, "info": "rssi : -100"}
         print("step : %d, result : %d" % (step_msg["step"], step_msg["result"]))
         for n, l in enumerate(gwmap.GatewayCheckListMap):
             if l["id"] == step_msg["step"]:
-                self.check_table_set_result(n, step_msg["result"])
+                self.check_table_set_result(n, step_msg["result"], step_msg["info"])
