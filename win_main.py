@@ -209,7 +209,7 @@ class Ui_MainWindow(object):
                 else:
                     item.setText(_translate("MainWindow", ""))
 
-    def resetGatewayStatus(self):
+    def reset_gateway_status(self):
         _translate = QtCore.QCoreApplication.translate
         self.gatewayMac.setText(_translate("MainWindow", ""))
         self.onetest_start_time_line.setText(_translate("MainWindow", ""))
@@ -242,8 +242,9 @@ class Ui_MainWindow(object):
         if self.test_thread:
             if not self.test_thread.isFinished():
                 print("测试还未完成，等几秒在继续")
+                return
         self.retranslateCheckListItemUi()
-        self.resetGatewayStatus()
+        self.reset_gateway_status()
         self.pBtTestStart.setEnabled(False)
         self.test_thread = gw_test.MyThread()  # msg with self
         self.test_thread.test_status_signal.connect(self.status_set)
@@ -271,8 +272,6 @@ class Ui_MainWindow(object):
             if l["id"] == step_msg["step"]:
                 self.check_table_set_result(n, step_msg["result"], step_msg["info"])
 
-
-
     def one_test_end(self, end_msg):
         # end_msg : {"result": 0, "info" : "ALL SUCCESS"}
         print("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
@@ -295,7 +294,7 @@ class Ui_MainWindow(object):
             print("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))
 
         self.pBtTestStart.setEnabled(True)
-        #if not self.test_thread.isFinished():
+        # if not self.test_thread.isFinished():
         #    print("test_thread is still running")
 
     def generate_logs(self):
