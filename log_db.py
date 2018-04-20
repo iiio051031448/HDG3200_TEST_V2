@@ -83,17 +83,17 @@ class SqlSession:
         return t_log
 
 
-# if __name__ == "__main__":
-sql_ses = SqlSession("sqlite:///log.db")
+if __name__ == "__main__":
+    sql_ses = SqlSession("sqlite:///log.db")
 
-t_log_new = sql_ses.add_log(mac='11:22:33:44:58:6F', operator="ed", start_time=time.strftime("%Y-%m-%d %H:%M:%S"),
-                  end_time=time.strftime("%Y-%m-%d %H:%M:%S"), test_id="HDG201804060001", is_repeat=False,
-                  result="成功", failed_info="ALL SUCCESS", note="")
+    t_log_new = sql_ses.add_log(mac='11:22:33:44:58:6F', operator="ed", start_time=time.strftime("%Y-%m-%d %H:%M:%S"),
+                      end_time=time.strftime("%Y-%m-%d %H:%M:%S"), test_id="HDG201804060001", is_repeat=False,
+                      result="成功", failed_info="ALL SUCCESS", note="")
 
-t_log = sql_ses.find_item("11:22:33:44:58:6F")
-print(t_log)
-if t_log:
-    sql_ses.updata_operator(t_log, "刘德华2")
+    t_log = sql_ses.find_item("11:22:33:44:58:6F")
+    print(t_log)
+    if t_log:
+        sql_ses.updata_operator(t_log, "刘德华5")
 
 
 # session.add(ed_user)
