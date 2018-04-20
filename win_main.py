@@ -31,8 +31,9 @@ class GatewayTestThread(QtCore.QThread):
             print("---")
 
 
-class Ui_MainWindow(object):
+class Ui_MainWindow(QtWidgets.QWidget):
     def __init__(self):
+        super(Ui_MainWindow, self).__init__() # 没有这个QFileDialog.getOpenFileName都不弹输出来
         self.test_thread = None # msg with self
         # TODO: need with try:
         self.db_session = log_db.SqlSession("sqlite:///log.db")
@@ -150,16 +151,35 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
 
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 916, 23))
+        self.menubar.setObjectName("menubar")
+        self.menu = QtWidgets.QMenu(self.menubar)
+        self.menu.setObjectName("menu")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+        self.new_batch_act = QtWidgets.QAction(MainWindow)
+        self.new_batch_act.setObjectName("new_batch")
+        self.open_batch_act = QtWidgets.QAction(MainWindow)
+        self.open_batch_act.setObjectName("open_batch")
+        self.menu.addAction(self.new_batch_act)
+        self.menu.addAction(self.open_batch_act)
+        self.menubar.addAction(self.menu.menuAction())
+
         self.retranslateUi(MainWindow)
 
         self.pBtTestStart.clicked.connect(self.start_test)
         self.pBtGenrateLogs.clicked.connect(self.generate_logs)
+        self.new_batch_act.triggered.connect(self.create_batch)
+        self.open_batch_act.triggered.connect(self.open_batch)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "HDG3200 Test tool"))
         self.check_list.setSortingEnabled(False)
         item = self.check_list.verticalHeaderItem(0)
         item.setText(_translate("MainWindow", "New Row"))
@@ -190,6 +210,12 @@ class Ui_MainWindow(object):
         self.onetest_start_time_line.setText(_translate("MainWindow", ""))
         self.onetest_end_time_lable.setText(_translate("MainWindow", "结束时间"))
         self.onetest_end_time_line.setText(_translate("MainWindow", ""))
+
+        self.menu.setTitle(_translate("MainWindow", "批次"))
+        self.new_batch_act.setText(_translate("MainWindow", "新建批次"))
+        self.new_batch_act.setToolTip(_translate("MainWindow", "new_bat"))
+        self.open_batch_act.setText(_translate("MainWindow", "打开批次"))
+        self.open_batch_act.setToolTip(_translate("MainWindow", "open_batch"))
 
     def retranslateCheckListItemUi(self, reset=0):
         _translate = QtCore.QCoreApplication.translate
@@ -304,7 +330,7 @@ class Ui_MainWindow(object):
                 break
             print("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))
             if end_msg["result"] == 1:
-                failed_info = failed_info + ("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))
+                failed_info = failed_info + ("%-25s %-25s %-15s %-15s\n" % (line[0], line[1], line[2], line[3]))
 
         self.one_test_end_save_record(end_msg["info"], failed_info)
 
@@ -315,3 +341,12 @@ class Ui_MainWindow(object):
     def generate_logs(self):
         if not self.test_thread.isFinished():
             print("test_thread is still running")
+
+    def create_batch(self):
+        print("create_batch")
+
+    def open_batch(self):
+        print("open_batch")
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', './')
+        if filename:
+            print(filename)
