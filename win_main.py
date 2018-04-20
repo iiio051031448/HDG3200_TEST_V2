@@ -37,6 +37,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.test_thread = None # msg with self
         # TODO: need with try:
         self.db_session = log_db.SqlSession("sqlite:///log.db")
+        self.test_batch = None
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -268,6 +269,9 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def start_test(self):
         print("-")
+        if self.test_batch == None:
+            self.show_open_batch_warning()
+            return
         if self.test_thread:
             if not self.test_thread.isFinished():
                 print("测试还未完成，等几秒在继续")
@@ -345,8 +349,19 @@ class Ui_MainWindow(QtWidgets.QWidget):
     def create_batch(self):
         print("create_batch")
 
+
     def open_batch(self):
         print("open_batch")
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file', './')
         if filename:
             print(filename)
+
+    def show_open_batch_warning(self):
+        reply = QMessageBox.warning(self,
+                                    "消息框标题",
+                                    "这是一条警告！",
+                                    QMessageBox.Yes)
+        if reply == QMessageBox.Yes:
+            print("Yes Yes Yes Yes")
+        else:
+            print("No No No No")
