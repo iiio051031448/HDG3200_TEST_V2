@@ -42,11 +42,11 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(835, 598)
+        MainWindow.resize(835, 660)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.check_list = QtWidgets.QTableWidget(self.centralwidget)
-        self.check_list.setGeometry(QtCore.QRect(400, 50, 600, 600))
+        self.check_list.setGeometry(QtCore.QRect(400, 50, 600, 660))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -79,8 +79,37 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.check_list.verticalHeader().setVisible(False)
 
 
+        self.tst_bat_grpbox = QtWidgets.QGroupBox(self.centralwidget)
+        self.tst_bat_grpbox.setGeometry(QtCore.QRect(30, 20, 291, 121))
+        self.tst_bat_grpbox.setObjectName("tst_bat_grpbox")
+        self.tst_bat_id_lable = QtWidgets.QLabel(self.tst_bat_grpbox)
+        self.tst_bat_id_lable.setGeometry(QtCore.QRect(10, 20, 54, 12))
+        self.tst_bat_id_lable.setObjectName("tst_bat_id_lable")
+        self.tst_bat_id_eline = QtWidgets.QLineEdit(self.tst_bat_grpbox)
+        self.tst_bat_id_eline.setGeometry(QtCore.QRect(70, 20, 160, 20))
+        self.tst_bat_id_eline.setObjectName("tst_bat_id_eline")
+        self.tst_bat_start_time_lable = QtWidgets.QLabel(self.tst_bat_grpbox)
+        self.tst_bat_start_time_lable.setGeometry(QtCore.QRect(10, 50, 54, 12))
+        self.tst_bat_start_time_lable.setObjectName("tst_bat_start_time_lable")
+        self.tst_bat_success_count_eline = QtWidgets.QLineEdit(self.tst_bat_grpbox)
+        self.tst_bat_success_count_eline.setGeometry(QtCore.QRect(70, 80, 61, 20))
+        self.tst_bat_success_count_eline.setObjectName("tst_bat_success_count_eline")
+        self.tst_bat_success_count_lable = QtWidgets.QLabel(self.tst_bat_grpbox)
+        self.tst_bat_success_count_lable.setGeometry(QtCore.QRect(10, 70, 54, 31))
+        self.tst_bat_success_count_lable.setObjectName("tst_bat_success_count_lable")
+        self.tst_bat_failed_count_lable = QtWidgets.QLabel(self.tst_bat_grpbox)
+        self.tst_bat_failed_count_lable.setGeometry(QtCore.QRect(140, 70, 54, 31))
+        self.tst_bat_failed_count_lable.setObjectName("tst_bat_failed_count_lable")
+        self.tst_bat_failed_count_eline = QtWidgets.QLineEdit(self.tst_bat_grpbox)
+        self.tst_bat_failed_count_eline.setGeometry(QtCore.QRect(200, 80, 61, 20))
+        self.tst_bat_failed_count_eline.setObjectName("tst_bat_failed_count_eline")
+        self.tst_bat_start_time_eline = QtWidgets.QLineEdit(self.tst_bat_grpbox)
+        self.tst_bat_start_time_eline.setGeometry(QtCore.QRect(70, 50, 160, 20))
+        self.tst_bat_start_time_eline.setObjectName("tst_bat_start_time_eline")
+
+
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox.setGeometry(QtCore.QRect(30, 50, 291, 301))
+        self.groupBox.setGeometry(QtCore.QRect(30, 150, 290, 210))
         self.groupBox.setObjectName("groupBox")
         self.label = QtWidgets.QLabel(self.groupBox)
         self.label.setGeometry(QtCore.QRect(30, 40, 54, 12))
@@ -98,7 +127,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.pBtTestStart.setGeometry(QtCore.QRect(30, 120, 75, 23))
         self.pBtTestStart.setObjectName("pushButton")
         self.pBtGenrateLogs = QtWidgets.QPushButton(self.groupBox)
-        self.pBtGenrateLogs.setGeometry(QtCore.QRect(30, 180, 75, 23))
+        self.pBtGenrateLogs.setGeometry(QtCore.QRect(115, 150, 75, 23))
         self.pBtGenrateLogs.setObjectName("pushButton_2")
         self.pushButton_3 = QtWidgets.QPushButton(self.groupBox)
         self.pushButton_3.setGeometry(QtCore.QRect(30, 150, 75, 23))
@@ -106,7 +135,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
 
         self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_2.setGeometry(QtCore.QRect(30, 360, 291, 191))
+        self.groupBox_2.setGeometry(QtCore.QRect(30, 370, 291, 191))
         self.groupBox_2.setObjectName("groupBox_2")
 
         self.label_3 = QtWidgets.QLabel(self.groupBox_2)
@@ -194,13 +223,19 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.retranslateCheckListItemUi()
         self.check_list.setSortingEnabled(__sortingEnabled)
 
+        self.tst_bat_grpbox.setTitle(_translate("MainWindow", "批次信息"))
+        self.tst_bat_id_lable.setText(_translate("MainWindow", "批次ID"))
+        self.tst_bat_start_time_lable.setText(_translate("MainWindow", "开始时间"))
+        self.tst_bat_success_count_lable.setText(_translate("MainWindow", "成功次数"))
+        self.tst_bat_failed_count_lable.setText(_translate("MainWindow", "失败次数"))
+
         self.groupBox.setTitle(_translate("MainWindow", "测试"))
         self.label.setText(_translate("MainWindow", "日期"))
         self.lineEdit.setText(_translate("MainWindow", "2018-04-12"))
         self.label_2.setText(_translate("MainWindow", "时间"))
         self.lineEdit_2.setText(_translate("MainWindow", "15:27:33"))
         self.pBtTestStart.setText(_translate("MainWindow", "开始测试"))
-        self.pBtGenrateLogs.setText(_translate("MainWindow", "生产日志"))
+        self.pBtGenrateLogs.setText(_translate("MainWindow", "生成报告"))
         self.pushButton_3.setText(_translate("MainWindow", "查看日志"))
 
         self.groupBox_2.setTitle(_translate("MainWindow", "信息"))
@@ -354,6 +389,14 @@ class Ui_MainWindow(QtWidgets.QWidget):
         # TODO: need with try:
         self.db_session = log_db.SqlSession("sqlite:///" + db_file_path)
 
+    def show_batch_msg(self):
+        _translate = QtCore.QCoreApplication.translate
+        #print (self.test_batch.t_bat_msg)
+        self.tst_bat_id_eline.setText(_translate("MainWindow", self.test_batch.get_bat_id()))
+        self.tst_bat_start_time_eline.setText(_translate("MainWindow", self.test_batch.get_bat_time()))
+        self.tst_bat_success_count_eline.setText(_translate("MainWindow", str(self.test_batch.get_success_count())))
+        self.tst_bat_failed_count_eline.setText(_translate("MainWindow", str(self.test_batch.get_failed_count())))
+
     def create_batch(self):
         print("create_batch")
         filename, _ = QFileDialog.getSaveFileName(self, 'save file',
@@ -365,6 +408,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             if self.test_batch.load_batch_new():
                 self.db_file_path = self.test_batch.get_db_file()
                 self.create_db_sesson(self.db_file_path)
+                self.show_batch_msg()
 
 
     def open_batch(self):
@@ -378,6 +422,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             if self.test_batch.load_batch_exist():
                 self.db_file_path = self.test_batch.get_db_file()
                 self.create_db_sesson(self.db_file_path)
+                self.show_batch_msg()
 
     def show_open_batch_warning(self):
         reply = QMessageBox.warning(self,

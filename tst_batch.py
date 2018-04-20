@@ -51,7 +51,17 @@ class TBatch:
     def get_db_file(self):
         return self.t_bat_msg['db_file']
 
+    def get_bat_id(self):
+        return self.t_bat_msg['id']
 
+    def get_bat_time(self):
+        return self.t_bat_msg['time']
+
+    def get_success_count(self):
+        return self.t_bat_msg['success']
+
+    def get_failed_count(self):
+        return self.t_bat_msg['failed']
 
 if __name__ == "__main__":
     t_bat = TBatch("HDGZ3200_20180420_04201505.tbat") # HDGZ3200_20180420.tbat
