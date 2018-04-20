@@ -13,6 +13,7 @@ import threading
 import time
 import gw_test
 import gw_check_map as gwmap
+import log_db
 
 
 class GatewayTestThread(QtCore.QThread):
@@ -33,6 +34,8 @@ class GatewayTestThread(QtCore.QThread):
 class Ui_MainWindow(object):
     def __init__(self):
         self.test_thread = None # msg with self
+        # TODO: need with try:
+        self.db_session = log_db.SqlSession("sqlite:///log.db")
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -272,6 +275,13 @@ class Ui_MainWindow(object):
             if l["id"] == step_msg["step"]:
                 self.check_table_set_result(n, step_msg["result"], step_msg["info"])
 
+    def one_test_end_save_record(self, result_str, failed_info_strs):
+        t_log_new = self.db_session.add_log(mac=self.gatewayMac.text(), operator="ed",
+                                    start_time=self.onetest_start_time_line.text(),
+                                    end_time=self.onetest_end_time_line.text(), test_id="HDG201804060001",
+                                    is_repeat=False,
+                                    result=result_str, failed_info=failed_info_strs, note="")
+
     def one_test_end(self, end_msg):
         # end_msg : {"result": 0, "info" : "ALL SUCCESS"}
         print("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
@@ -279,6 +289,7 @@ class Ui_MainWindow(object):
         print("开始时间：%s" % self.onetest_start_time_line.text())
         print("结束时间：%s" % self.onetest_end_time_line.text())
         print("MAC:%s" % self.gatewayMac.text())
+        failed_info = ""
         for row in range(self.rowCount):
             line = []
             column = 0
@@ -292,6 +303,10 @@ class Ui_MainWindow(object):
             if column == 2:
                 break
             print("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))
+            if end_msg["result"] == 1:
+                failed_info = failed_info + ("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))
+
+        self.one_test_end_save_record(end_msg["info"], failed_info)
 
         self.pBtTestStart.setEnabled(True)
         # if not self.test_thread.isFinished():

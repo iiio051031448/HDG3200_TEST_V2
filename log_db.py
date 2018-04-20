@@ -69,6 +69,9 @@ class SqlSession:
         self.session.commit()
 
     def add_log(self, mac, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note=""):
+        print("mac:[%s], operator:[%s], start_time:[%s], end_time:[%s], test_id:[%s], is_repeat[%d], "
+              "result[%s], failed_info[%s], note[%s]" %
+              (mac, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note))
         t_log = self.find_item(mac)
         if not t_log:
             print("NOT FIND ITME : [%s]" % mac)
