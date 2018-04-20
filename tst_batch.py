@@ -18,7 +18,7 @@ class TBatch:
             time_str = time.strftime("%Y%m%d_%H%M%S")
             self.t_bat_msg = {"id": "HDGZ3200_" + time_str,
                          "time": time.strftime("%Y-%m-%d %H:%M:%S"),
-                         "db_file": "HDGZ3200_" + time_str + "_log.db",
+                         "db_file": "./tst_dbs/HDGZ3200_" + time_str + "_log.db",
                          "success": 0,
                          "failed": 0}
             t_bat_msg_strs = json.dumps(self.t_bat_msg)
@@ -32,6 +32,12 @@ class TBatch:
             self.file.close()
             self.t_bat_msg = json.loads(t_bat_msg_strs)
         return True
+
+    def load_batch_new(self):
+        return self.load_batch(True)
+
+    def load_batch_exist(self):
+        return self.load_batch(False)
 
     def upload_batch(self, success_count, failed_count):
         self.t_bat_msg['success'] = success_count

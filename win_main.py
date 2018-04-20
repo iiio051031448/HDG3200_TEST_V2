@@ -14,6 +14,7 @@ import time
 import gw_test
 import gw_check_map as gwmap
 import log_db
+import tst_batch
 
 
 class GatewayTestThread(QtCore.QThread):
@@ -35,8 +36,8 @@ class Ui_MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super(Ui_MainWindow, self).__init__() # 没有这个QFileDialog.getOpenFileName都不弹输出来
         self.test_thread = None # msg with self
-        # TODO: need with try:
-        self.db_session = log_db.SqlSession("sqlite:///log.db")
+        self.db_session = None
+        self.db_file_path = None
         self.test_batch = None
 
     def setupUi(self, MainWindow):
@@ -306,6 +307,9 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 self.check_table_set_result(n, step_msg["result"], step_msg["info"])
 
     def one_test_end_save_record(self, result_str, failed_info_strs):
+        if not self.db_session:
+            print("db_session is not ready")
+            return
         t_log_new = self.db_session.add_log(mac=self.gatewayMac.text(), operator="ed",
                                     start_time=self.onetest_start_time_line.text(),
                                     end_time=self.onetest_end_time_line.text(), test_id="HDG201804060001",
@@ -346,20 +350,39 @@ class Ui_MainWindow(QtWidgets.QWidget):
         if not self.test_thread.isFinished():
             print("test_thread is still running")
 
+    def create_db_sesson(self, db_file_path):
+        # TODO: need with try:
+        self.db_session = log_db.SqlSession("sqlite:///" + db_file_path)
+
     def create_batch(self):
         print("create_batch")
+        filename, _ = QFileDialog.getSaveFileName(self, 'save file',
+                                                  './tst_batchs/HDGZ3200_%s.tbat' % (time.strftime("%Y%m%d_%H%M%S")),
+                                                  'Test Batch Files (*.tbat);;All Files (*)')
+        if filename:
+            print(filename)
+            self.test_batch = tst_batch.TBatch(filename)
+            if self.test_batch.load_batch_new():
+                self.db_file_path = self.test_batch.get_db_file()
+                self.create_db_sesson(self.db_file_path)
 
 
     def open_batch(self):
         print("open_batch")
-        filename, _ = QFileDialog.getOpenFileName(self, 'Open file', './')
+        filename, _ = QFileDialog.getOpenFileName(self, 'Open file',
+                                                  './tst_batchs/',
+                                                  'Test Batch Files (*.tbat);;All Files (*)')
         if filename:
             print(filename)
+            self.test_batch = tst_batch.TBatch(filename)
+            if self.test_batch.load_batch_exist():
+                self.db_file_path = self.test_batch.get_db_file()
+                self.create_db_sesson(self.db_file_path)
 
     def show_open_batch_warning(self):
         reply = QMessageBox.warning(self,
-                                    "消息框标题",
-                                    "这是一条警告！",
+                                    "警告",
+                                    "还没有打开批次，请新建一个批次或打开已有的批次",
                                     QMessageBox.Yes)
         if reply == QMessageBox.Yes:
             print("Yes Yes Yes Yes")
