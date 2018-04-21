@@ -7,7 +7,7 @@ import time
 import gw_check_map as gwmap
 
 
-host = "192.168.69.134"
+host = "192.168.199.134"
 
 # url = "http://" + host + "/cgi-bin/luci"
 # data = {"luci_username": "root", "luci_password": ""}

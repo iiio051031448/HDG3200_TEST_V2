@@ -403,6 +403,8 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def create_batch(self):
         print("create_batch")
+        if not tst_batch.check_bats_dir():
+            return
         filename, _ = QFileDialog.getSaveFileName(self, 'save file',
                                                   './tst_batchs/HDGZ3200_%s.tbat' % (time.strftime("%Y%m%d_%H%M%S")),
                                                   'Test Batch Files (*.tbat);;All Files (*)')
@@ -417,8 +419,10 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def open_batch(self):
         print("open_batch")
+        if not tst_batch.check_bats_dir():
+            return False
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file',
-                                                  './tst_batchs/',
+                                                  './' + tst_batch.TST_BATCH_BATS_DIR_PATH + '/',
                                                   'Test Batch Files (*.tbat);;All Files (*)')
         if filename:
             print(filename)

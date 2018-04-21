@@ -2,6 +2,22 @@ import json
 import os
 import time
 
+TST_BATCH_DBS_DIR_PATH="tst_dbs"
+TST_BATCH_BATS_DIR_PATH="tst_batchs"
+
+
+def check_bats_dir():
+    if os.path.exists(TST_BATCH_BATS_DIR_PATH):
+        if os.path.isdir(TST_BATCH_BATS_DIR_PATH):
+            return True
+        else:
+            print(TST_BATCH_BATS_DIR_PATH + "is not a dir")
+            return False
+    else:
+        print(TST_BATCH_BATS_DIR_PATH + "is not exist, create it")
+        os.mkdir(TST_BATCH_BATS_DIR_PATH)
+        return True
+
 class TBatch:
     def __init__(self, batch_file_path):
         print('-')
@@ -11,6 +27,14 @@ class TBatch:
 
     def load_batch(self, new):
         if new:
+            if not os.path.exists(TST_BATCH_DBS_DIR_PATH):
+                print(TST_BATCH_DBS_DIR_PATH + "is not exist, create it")
+                os.mkdir(TST_BATCH_DBS_DIR_PATH)
+            else:
+                if not os.path.isdir(TST_BATCH_DBS_DIR_PATH):
+                    print(TST_BATCH_DBS_DIR_PATH + "is not dir")
+                    return False
+
             if os.path.exists(self.batch_file_path):
                 print("batch file[%s] is already exist !!!" % (self.batch_file_path))
                 return False
@@ -18,7 +42,7 @@ class TBatch:
             time_str = time.strftime("%Y%m%d_%H%M%S")
             self.t_bat_msg = {"id": "HDGZ3200_" + time_str,
                          "time": time.strftime("%Y-%m-%d %H:%M:%S"),
-                         "db_file": "./tst_dbs/HDGZ3200_" + time_str + "_log.db",
+                         "db_file": "./" + TST_BATCH_DBS_DIR_PATH + "/HDGZ3200_" + time_str + "_log.db",
                          "success": 0,
                          "failed": 0}
             t_bat_msg_strs = json.dumps(self.t_bat_msg)
