@@ -397,7 +397,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                                      QMessageBox.Yes | QMessageBox.No)
             resp_msg = {"type": cf_msg['type'], "data": cf_msg['data'],
                         "reply": 1 if reply == QMessageBox.Yes else 0}
-            hdtHttp.wait_trigger_q.put(resp_msg)
+            gw_test.wait_trigger_q.put(resp_msg)
         elif cf_msg['type'] == "button":
             reply = QMessageBox.question(self,
                                      "消息框标题",
@@ -406,12 +406,12 @@ class Ui_MainWindow(QtWidgets.QWidget):
                                      QMessageBox.Yes | QMessageBox.No)
             resp_msg = {"type": cf_msg['type'], "data": cf_msg['data'],
                         "reply": 1 if reply == QMessageBox.Yes else 0}
-            hdtHttp.wait_trigger_q.put(resp_msg)
+            gw_test.wait_trigger_q.put(resp_msg)
         elif cf_msg['type'] == "mac":
             value, ok = QInputDialog.getText(self, "输入框标题", "请输入MAC\n\nMAC:", QLineEdit.Normal, "MAC")
             resp_msg = {"type": cf_msg['type'], "data": value,
                         "reply": 1 if ok else 0}
-            hdtHttp.wait_trigger_q.put(resp_msg)
+            gw_test.wait_trigger_q.put(resp_msg)
 
     def generate_logs(self):
         if not self.test_thread.isFinished():

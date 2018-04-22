@@ -12,8 +12,6 @@ HDG_TEST_STEP_3_SYSTEM_TEST = "system-test"
 HDG_TEST_STEP_4_FINISH_TEST = "finish-test"
 
 
-wait_trigger_q = queue.Queue()
-
 class HttpReq:
     def __init__(self, host, step_up_func, cf_msg_func):
         self.host = host
@@ -176,10 +174,7 @@ class HttpReq:
         # ret = resp_json["ret"]
         if int(resp_json["ret"]) == 0:
             logging.debug("set led color to [" + color + "] success")
-            self.cf_msg_func("led", color)
-            print("wait trigger ++++")
-            resp_msg = wait_trigger_q.get()
-            print("wait trigger ----")
+            resp_msg = self.cf_msg_func("led", color)
             print(resp_msg)
             if resp_msg['reply'] == 1:
                 return True
@@ -220,10 +215,7 @@ class HttpReq:
 
     def _gateway_button_check(self, button):
         logging.debug("-")
-        self.cf_msg_func("button", button)
-        print("wait trigger ++++")
-        resp_msg = wait_trigger_q.get()
-        print("wait trigger ----")
+        resp_msg = self.cf_msg_func("button", button)
         print(resp_msg)
         if resp_msg['reply'] == 0:
             print("test Failed and exit")
@@ -309,10 +301,7 @@ class HttpReq:
             return False
         print(mac)
 
-        self.cf_msg_func("mac", "get mac")
-        print("wait trigger ++++")
-        resp_msg = wait_trigger_q.get()
-        print("wait trigger ----")
+        resp_msg = self.cf_msg_func("mac", "get mac")
         print(resp_msg)
         if resp_msg['reply'] == 0:
             return False

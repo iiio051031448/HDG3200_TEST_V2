@@ -5,13 +5,15 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import time
 import gw_check_map as gwmap
-
+import queue
 
 host = "192.168.199.134"
 
 # url = "http://" + host + "/cgi-bin/luci"
 # data = {"luci_username": "root", "luci_password": ""}
 # headers = {'Content-Type' : 'application/x-www-form-urlencoded'}
+
+wait_trigger_q = queue.Queue()
 
 class GatewayTest:
     def __init__(self):
@@ -96,6 +98,10 @@ class MyThread(QThread):
     def confirm_msg(self, type, data):
         cf_msg =  {"type": type, "data": data}
         self.test_confirm_signal.emit(cf_msg)
+        print("wait trigger ++++")
+        resp_msg = wait_trigger_q.get()
+        print("wait trigger ----")
+        return resp_msg
 
 
 
