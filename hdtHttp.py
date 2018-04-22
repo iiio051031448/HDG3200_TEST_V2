@@ -8,6 +8,7 @@ import time
 
 HDG_TEST_STEP_1_MOD_TEST = "module-test"
 HDG_TEST_STEP_2_GATEWAY_TEST = "gateway-test"
+HDG_TEST_STEP_3_SYSTEM_TEST = "system-test"
 
 
 wait_trigger_q = queue.Queue()
@@ -19,7 +20,9 @@ class HttpReq:
         self.http_get_timeout = 1
         self.step = ""
         self.test_list = {HDG_TEST_STEP_1_MOD_TEST: self.mod_check,
-                          HDG_TEST_STEP_2_GATEWAY_TEST: self.gateway_check}
+                          HDG_TEST_STEP_2_GATEWAY_TEST: self.gateway_check,
+                          HDG_TEST_STEP_3_SYSTEM_TEST:self.system_check}
+
         self.step_up_func = step_up_func
         self.cf_msg_func = cf_msg_func
 
@@ -261,18 +264,97 @@ class HttpReq:
             return False
         return True
 
+    def system_check_factory_info_check(self):
+        purl = self.furl + "/admin/factory/data_check"
+        p = self.http_get(purl, 5)
+        if not p.text:
+            logging.error("get factory info failed.")
+            return False
+        logging.debug(p.text)
+        resp_json = json.loads(p.text)
+        # ret = resp_json["ret"]
+        if not resp_json["ret"]:
+            return False
+        for fi_item in resp_json['ret']:
+            print(fi_item)
+            if not fi_item['dname'] or not fi_item['value']:
+                return False
+            if not gwmap.factory_datas[fi_item['dname']]:
+                return False
+            else:
+                if gwmap.factory_datas[fi_item['dname']] != fi_item['value']:
+                    return False
+                else:
+                    print(fi_item['dname'] + "check success.")
+        return True
+
+    def system_check_mac_check(self):
+        purl = self.furl + "/admin/factory/mac_check"
+        p = self.http_get(purl, 5)
+        if not p.text:
+            logging.error("get mac list failed.")
+            return False
+        logging.debug(p.text)
+        resp_json = json.loads(p.text)
+        # ret = resp_json["ret"]
+        if not resp_json["ret"]:
+            return False
+        mac={}
+        for mac_item in resp_json["ret"]:
+            mac[mac_item["ifname"]] = [int(x, 16) for x in mac_item['mac'].split(":")]
+        if mac['ra'][5] + 1 != mac['lan'][5] or mac['ra'][5] + 2 != mac['wan'][5]:
+            return False
+        print(mac)
+
+        self.cf_msg_func("mac", "get mac")
+        print("wait trigger ++++")
+        resp_msg = wait_trigger_q.get()
+        print("wait trigger ----")
+        print(resp_msg)
+        if resp_msg['reply'] == 0:
+            return False
+        if not resp_msg['data']:
+            return False
+        print(resp_msg['data'])
+        t_mac = [int(x, 16) for x in resp_msg['data'].split(':')]
+        print(t_mac)
+        if mac['ra'] != t_mac:
+            return False
+
+        return True
+
+    def system_check(self):
+        logging.debug("-")
+        step_id = gwmap.GATEWAY_CHECK_STEP_ID_SYS_READ_DATA
+        if not self.system_check_factory_info_check():
+            self.step_up_func(step_id, 1)
+        else:
+            self.step_up_func(step_id, 0)
+        step_id += 1
+        if not self.system_check_mac_check():
+            self.step_up_func(step_id, 1)
+        else:
+            self.step_up_func(step_id, 0)
+
     def handle_error(self):
         logging.error("get error")
+
 
     def test_start(self):
        # for (step, func) in self.test_list.items():
        #     self.step = step
        #     func()
-        ''''''
+        '''
         if not self.test_list[HDG_TEST_STEP_1_MOD_TEST]():
             logging.debug("mod check failed.")
             return False
 
         if not self.test_list[HDG_TEST_STEP_2_GATEWAY_TEST]():
             return False
+        '''
+        ''''''
+        if not self.test_list[HDG_TEST_STEP_3_SYSTEM_TEST]():
+            return False
+
+
         return True

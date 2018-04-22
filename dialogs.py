@@ -104,6 +104,7 @@ class MyWindow(QWidget):
     def do_btn13(self, event):  # 输入：文本
         # 第三个参数表示显示类型，可选，有正常（QLineEdit.Normal）、密碼（ QLineEdit. Password）、不显示（ QLineEdit. NoEcho）三种情况
         value, ok = QInputDialog.getText(self, "输入框标题", "这是提示信息\n\n请输入文本:", QLineEdit.Normal, "这是默认值")
+        print(value, ok)
         self.echo(value)
 
     def do_btn14(self, event):  # 输入：多文

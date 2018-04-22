@@ -1,5 +1,4 @@
 
-
 GATEWAY_CHECK_STEP_ID_MOD_CONN = 1
 GATEWAY_CHECK_STEP_ID_MOD_SN   = 2
 GATEWAY_CHECK_STEP_ID_MOD_RSSI = 3
@@ -36,3 +35,9 @@ GatewayCheckListMap = [{"id": 0, "table_msg": ["项目", "子项", "结果", "�
 
 button_list = {'reset': 'RESET键',
                'sm_config': 'SMARTCONFIG键'};
+
+factory_datas = {"pid": "GZ3200",
+                 "vid": "HUADI",
+                 "pcode": "GZ3200",
+                 "vcode": "HUADI",
+                 "factory_reset": "none"}
