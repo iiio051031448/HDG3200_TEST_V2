@@ -9,6 +9,7 @@ import time
 HDG_TEST_STEP_1_MOD_TEST = "module-test"
 HDG_TEST_STEP_2_GATEWAY_TEST = "gateway-test"
 HDG_TEST_STEP_3_SYSTEM_TEST = "system-test"
+HDG_TEST_STEP_4_FINISH_TEST = "finish-test"
 
 
 wait_trigger_q = queue.Queue()
@@ -21,7 +22,8 @@ class HttpReq:
         self.step = ""
         self.test_list = {HDG_TEST_STEP_1_MOD_TEST: self.mod_check,
                           HDG_TEST_STEP_2_GATEWAY_TEST: self.gateway_check,
-                          HDG_TEST_STEP_3_SYSTEM_TEST:self.system_check}
+                          HDG_TEST_STEP_3_SYSTEM_TEST: self.system_check,
+                          HDG_TEST_STEP_4_FINISH_TEST: self.finish_test}
 
         self.step_up_func = step_up_func
         self.cf_msg_func = cf_msg_func
@@ -355,18 +357,79 @@ class HttpReq:
         step_id = gwmap.GATEWAY_CHECK_STEP_ID_SYS_READ_DATA
         if not self.system_check_factory_info_check():
             self.step_up_func(step_id, 1)
+            return False
         else:
             self.step_up_func(step_id, 0)
         step_id += 1
         if not self.system_check_mac_check():
             self.step_up_func(step_id, 1)
+            return False
         else:
             self.step_up_func(step_id, 0)
         step_id += 1
         if not self.system_check_write_sn():
             self.step_up_func(step_id, 1)
+            return False
         else:
             self.step_up_func(step_id, 0)
+
+        return True
+
+    # TODO: this function same to system_check_write_sn
+    def finish_test_write_factory_flag(self):
+        sn = ""
+
+        logging.debug('-')
+
+        # TODO: "none" is for test, real string is "done"
+        purl = self.furl + "/admin/factory/data_set?dname=factory_reset&dvalue=none"
+        p = self.http_get(purl, 5)
+        if not p.text:
+            logging.error("data_set failed.")
+            return False
+        logging.debug(p.text)
+        resp_json = json.loads(p.text)
+        # ret = resp_json["ret"]
+        if not resp_json["ret"]:
+            return False
+        if resp_json['ret'] != "none":
+            logging.error("factory flag write failed.")
+            return False
+
+        return True
+
+    def finish_test_reset_data(self):
+        logging.debug('-')
+        purl = self.furl + "/admin/factory/reset"
+        p = self.http_get(purl, 5)
+        if not p.text:
+            logging.error("data_set failed.")
+            return False
+        logging.debug(p.text)
+        resp_json = json.loads(p.text)
+        # ret = resp_json["ret"]
+        if not resp_json["ret"]:
+            return False
+        if resp_json['ret'] != '0':
+            return False
+        return True
+
+    def finish_test(self):
+        logging.debug("-")
+        step_id = gwmap.GATEWAY_CHECK_STEP_ID_SYS_END_MARK
+        if not self.finish_test_write_factory_flag():
+            self.step_up_func(step_id, 1)
+            return False
+        else:
+            self.step_up_func(step_id, 0)
+        step_id += 1
+        if not self.finish_test_reset_data():
+            self.step_up_func(step_id, 1)
+            return False
+        else:
+            self.step_up_func(step_id, 0)
+
+        return True
 
     def handle_error(self):
         logging.error("get error")
@@ -376,17 +439,18 @@ class HttpReq:
        # for (step, func) in self.test_list.items():
        #     self.step = step
        #     func()
-        '''
+        ''''''
         if not self.test_list[HDG_TEST_STEP_1_MOD_TEST]():
             logging.debug("mod check failed.")
             return False
 
         if not self.test_list[HDG_TEST_STEP_2_GATEWAY_TEST]():
             return False
-        '''
-        ''''''
+
         if not self.test_list[HDG_TEST_STEP_3_SYSTEM_TEST]():
             return False
 
+        if not self.test_list[HDG_TEST_STEP_4_FINISH_TEST]():
+            return False
 
         return True
