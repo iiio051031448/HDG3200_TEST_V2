@@ -334,6 +334,19 @@ class Ui_MainWindow(QtWidgets.QWidget):
             self.lineEdit_3.setText(_translate("MainWindow", status_msg["msg"]))
         elif status_msg["type"] == "gw_mac":
             self.gatewayMac.setText(_translate("MainWindow", status_msg["msg"]))
+            _log = self.db_session.find_item(status_msg["msg"])
+            if not _log:
+                print(_log)
+                # resp_msg : {"type": "mac_find", "data": 1,  "is_repeat": True}
+                resp_msg = {"type": "mac_find", "data": True, "is_repeat": False}
+            else:
+                reply = QMessageBox.question(self,
+                                             "消息框标题",
+                                             "改网关已经测试过，是否再次测试？",
+                                             QMessageBox.Yes | QMessageBox.No)
+                resp_msg = {"type": "mac_find", "data": True if reply == QMessageBox.Yes else False, "is_repeat": True}
+
+            gw_test.wait_trigger_q.put(resp_msg)
         elif status_msg["type"] == "start_time":
             self.onetest_start_time_line.setText(_translate("MainWindow", status_msg["msg"]))
         elif status_msg["type"] == "end_time":
@@ -347,19 +360,20 @@ class Ui_MainWindow(QtWidgets.QWidget):
             if l["id"] == step_msg["step"]:
                 self.check_table_set_result(n, step_msg["result"], step_msg["info"])
 
-    def one_test_end_save_record(self, result_str, failed_info_strs):
+    def one_test_end_save_record(self, result_str, failed_info_strs, is_repeat):
         if not self.db_session:
             print("db_session is not ready")
             return
         t_log_new = self.db_session.add_log(mac=self.gatewayMac.text(), operator="ed",
                                     start_time=self.onetest_start_time_line.text(),
                                     end_time=self.onetest_end_time_line.text(), test_id="HDG201804060001",
-                                    is_repeat=False,
+                                    is_repeat=is_repeat,
                                     result=result_str, failed_info=failed_info_strs, note="")
 
     def one_test_end(self, end_msg):
-        # end_msg : {"result": 0, "info" : "ALL SUCCESS"}
-        print("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
+        # end_msg : {"result": 0, "info" : "ALL SUCCESS", "is_repeat": True}
+        print("one_test_end, result : %d, info : %s is_repeat %d" %
+              (end_msg["result"], end_msg["info"], end_msg['is_repeat']))
         print("++++++++++++++++++++++")
         print("开始时间：%s" % self.onetest_start_time_line.text())
         print("结束时间：%s" % self.onetest_end_time_line.text())
@@ -381,7 +395,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             if end_msg["result"] == 1:
                 failed_info = failed_info + ("%-25s %-25s %-15s %-15s\n" % (line[0], line[1], line[2], line[3]))
 
-        self.one_test_end_save_record(end_msg["info"], failed_info)
+        self.one_test_end_save_record(end_msg["info"], failed_info, end_msg['is_repeat'])
 
         self.pBtTestStart.setEnabled(True)
         # if not self.test_thread.isFinished():

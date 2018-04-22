@@ -57,6 +57,11 @@ class SqlSession:
         t_log.operator = operator
         self.session.commit()
 
+    def updata_set_repeat(self, t_log, is_repeat):
+        t_log.is_repeat = is_repeat
+        self.session.commit()
+
+
     def update_log(self, t_log, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note=""):
         t_log.operator = operator
         t_log.start_time = start_time

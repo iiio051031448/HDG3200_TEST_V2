@@ -42,6 +42,7 @@ class MyThread(QThread):
     def __init__(self, sec=1000, parent=None):
         super().__init__()
         self.sec = sec
+        self.is_repeat = False
 
     def run(self):
         print("---")
@@ -54,6 +55,16 @@ class MyThread(QThread):
         mac=self.req.gateway_get_mac()
         logging.debug("gateway MAC : %s", mac)
         self.up_gw_mac(mac)
+        print("wait mac trigger ++++")
+        resp_msg = wait_trigger_q.get()
+        print("wait mac trigger ----")
+        print(resp_msg)
+        self.is_repeat = resp_msg['is_repeat']
+        if not resp_msg['data']:
+            logging.debug("stop check")
+            self.end_test(0, "SKIP")
+            return
+
 
         # TODO: if failed.
 
@@ -91,7 +102,7 @@ class MyThread(QThread):
         self.test_step_signal.emit(step_msg)
 
     def end_test(self, result, info):
-        end_msg = {"result": result, "info" : info}
+        end_msg = {"result": result, "info" : info,  "is_repeat": self.is_repeat}
         # logging.debug("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
         self.test_end_signal.emit(end_msg)
 
