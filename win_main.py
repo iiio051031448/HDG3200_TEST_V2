@@ -15,6 +15,7 @@ import gw_test
 import gw_check_map as gwmap
 import log_db
 import tst_batch
+import hdtHttp
 
 
 class GatewayTestThread(QtCore.QThread):
@@ -323,6 +324,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.test_thread.test_status_signal.connect(self.status_set)
         self.test_thread.test_step_signal.connect(self.updata_step)
         self.test_thread.test_end_signal.connect(self.one_test_end)
+        self.test_thread.test_confirm_signal.connect(self.test_confirm)
         self.test_thread.start()
 
     def status_set(self, status_msg):
@@ -385,9 +387,22 @@ class Ui_MainWindow(QtWidgets.QWidget):
         # if not self.test_thread.isFinished():
         #    print("test_thread is still running")
 
+    def test_confirm(self,cf_msg):
+        # cf_msg : {"type": "led_check", "data": "red"}
+        print(cf_msg)
+        if cf_msg['type'] == "led":
+            reply = QMessageBox.question(self,
+                                     "消息框标题",
+                                     "Led灯的颜色是%s色吗?" % (cf_msg['data']),
+                                     QMessageBox.Yes | QMessageBox.No)
+            resp_msg = {"type": cf_msg['type'], "data": cf_msg['data'],
+                        "reply": 1 if reply == QMessageBox.Yes else 0}
+            hdtHttp.wait_trigger_q.put(resp_msg)
+
     def generate_logs(self):
         if not self.test_thread.isFinished():
             print("test_thread is still running")
+
 
     def create_db_sesson(self, db_file_path):
         # TODO: need with try:
@@ -441,3 +456,4 @@ class Ui_MainWindow(QtWidgets.QWidget):
             print("Yes Yes Yes Yes")
         else:
             print("No No No No")
+

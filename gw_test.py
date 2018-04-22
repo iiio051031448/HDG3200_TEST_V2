@@ -35,6 +35,7 @@ class MyThread(QThread):
     test_status_signal = pyqtSignal(dict)  # 信号类型：int
     test_step_signal = pyqtSignal(dict)
     test_end_signal = pyqtSignal(dict)
+    test_confirm_signal = pyqtSignal(dict)
 
     def __init__(self, sec=1000, parent=None):
         super().__init__()
@@ -45,7 +46,7 @@ class MyThread(QThread):
         # TODO: started with a test id(time + seq)
         self.up_test_start_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         self.test_status("GatewayTestThread start")
-        self.req = http.HttpReq(host,  self.test_step)
+        self.req = http.HttpReq(host,  self.test_step, self.confirm_msg)
         self.test_status("检测网关中")
         self.req.gatewaydetect()
         mac=self.req.gateway_get_mac()
@@ -91,5 +92,10 @@ class MyThread(QThread):
         end_msg = {"result": result, "info" : info}
         # logging.debug("one_test_end, result : %d, info : %s" % (end_msg["result"], end_msg["info"]))
         self.test_end_signal.emit(end_msg)
+
+    def confirm_msg(self, type, data):
+        cf_msg =  {"type": type, "data": data}
+        self.test_confirm_signal.emit(cf_msg)
+
 
 

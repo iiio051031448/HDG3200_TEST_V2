@@ -2,13 +2,17 @@ import requests
 import logging
 import json
 import gw_check_map as gwmap
+import threading
+import queue
 
 HDG_TEST_STEP_1_MOD_TEST = "module-test"
 HDG_TEST_STEP_2_GATEWAY_TEST = "gateway-test"
 
 
+wait_trigger_q = queue.Queue()
+
 class HttpReq:
-    def __init__(self, host, step_up_func):
+    def __init__(self, host, step_up_func, cf_msg_func):
         self.host = host
         self.url = "http://" + host + "/cgi-bin/luci"
         self.http_get_timeout = 1
@@ -16,6 +20,7 @@ class HttpReq:
         self.test_list = {HDG_TEST_STEP_1_MOD_TEST: self.mod_check,
                           HDG_TEST_STEP_2_GATEWAY_TEST: self.gateway_check}
         self.step_up_func = step_up_func
+        self.cf_msg_func = cf_msg_func
 
     def gateway_login(self):
         data = {"luci_username": "root", "luci_password": ""}
@@ -100,10 +105,11 @@ class HttpReq:
         logging.debug(ret_json['ret'])
         ret_str = ret_json['ret']
         rssi_v = int(ret_str.split(':')[1])
-        if rssi_v >= -45:
+        if rssi_v < -45:
             logging.error(self.step + " - " "rssi check error")
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 1, ret_str)
-            return False
+            # return False # TODO: for test
+            return True
         else:
             logging.error(self.step + " - " "rssi check success")
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 0)
@@ -163,7 +169,15 @@ class HttpReq:
         # ret = resp_json["ret"]
         if int(resp_json["ret"]) == 0:
             logging.debug("set led color to [" + color + "] success")
-            return True
+            self.cf_msg_func("led", color)
+            print("wait trigger ++++")
+            resp_msg = wait_trigger_q.get()
+            print("wait trigger ----")
+            print(resp_msg)
+            if resp_msg['reply'] == 1:
+                return True
+            else:
+                return False
         else:
             logging.debug("set led color to [" + color + "] faild")
             return False
@@ -176,12 +190,12 @@ class HttpReq:
                 # wait user input
                 logging.debug("set color over")
                 self.step_up_func(step_id, 0)
-                return True
             else:
                 logging.debug("set color failed.")
                 self.step_up_func(step_id, 1)
                 return False
             step_id = step_id + 1
+        return True
 
 
 
