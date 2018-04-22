@@ -70,7 +70,7 @@ class HttpReq:
             ret_json = json.loads(p.text)
             if ret_json:
                 for it in ret_json['ret']:
-                    if it["ifname"] == "lan":
+                    if it["ifname"] == "ra":
                         return it["mac"]
 
 
