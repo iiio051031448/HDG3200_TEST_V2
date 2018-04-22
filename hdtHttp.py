@@ -25,6 +25,7 @@ class HttpReq:
 
         self.step_up_func = step_up_func
         self.cf_msg_func = cf_msg_func
+        self.ra_mac = None
 
     def gateway_login(self):
         data = {"luci_username": "root", "luci_password": ""}
@@ -320,6 +321,32 @@ class HttpReq:
         print(t_mac)
         if mac['ra'] != t_mac:
             return False
+        self.ra_mac = mac['ra']
+
+        return True
+
+    def system_check_write_sn(self):
+        sn = ""
+
+        logging.debug('-')
+        logging.debug(self.ra_mac)
+        for mac_char in self.ra_mac:
+            sn += "%02X" % mac_char
+
+        purl = self.furl + "/admin/factory/data_set?dname=sn&dvalue=" + sn
+        p = self.http_get(purl, 5)
+        if not p.text:
+            logging.error("data_set failed.")
+            return False
+        logging.debug(p.text)
+        resp_json = json.loads(p.text)
+        # ret = resp_json["ret"]
+        if not resp_json["ret"]:
+            return False
+        print("resp_json['ret']:[%s] == sn:[%s]" % (resp_json['ret'], sn))
+        if resp_json['ret'] != sn:
+            logging.error("sn write failed.")
+            return False
 
         return True
 
@@ -332,6 +359,11 @@ class HttpReq:
             self.step_up_func(step_id, 0)
         step_id += 1
         if not self.system_check_mac_check():
+            self.step_up_func(step_id, 1)
+        else:
+            self.step_up_func(step_id, 0)
+        step_id += 1
+        if not self.system_check_write_sn():
             self.step_up_func(step_id, 1)
         else:
             self.step_up_func(step_id, 0)
