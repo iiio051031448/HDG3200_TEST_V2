@@ -398,6 +398,15 @@ class Ui_MainWindow(QtWidgets.QWidget):
             resp_msg = {"type": cf_msg['type'], "data": cf_msg['data'],
                         "reply": 1 if reply == QMessageBox.Yes else 0}
             hdtHttp.wait_trigger_q.put(resp_msg)
+        elif cf_msg['type'] == "button":
+            reply = QMessageBox.question(self,
+                                     "消息框标题",
+                                     "如果 %s按键已经按下 请点击Yes，并保持按键5s到检测到按键被按下。如果点击No则结束测试"
+                                         % (gwmap.button_list[cf_msg['data']]),
+                                     QMessageBox.Yes | QMessageBox.No)
+            resp_msg = {"type": cf_msg['type'], "data": cf_msg['data'],
+                        "reply": 1 if reply == QMessageBox.Yes else 0}
+            hdtHttp.wait_trigger_q.put(resp_msg)
 
     def generate_logs(self):
         if not self.test_thread.isFinished():

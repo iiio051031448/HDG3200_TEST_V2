@@ -4,6 +4,7 @@ import json
 import gw_check_map as gwmap
 import threading
 import queue
+import time
 
 HDG_TEST_STEP_1_MOD_TEST = "module-test"
 HDG_TEST_STEP_2_GATEWAY_TEST = "gateway-test"
@@ -197,13 +198,68 @@ class HttpReq:
             step_id = step_id + 1
         return True
 
+    def _do_gateway_button_check(self, button):
+        purl = self.furl + "/admin/factory/button_test/" + button
+        p = self.http_get(purl, 5)
+        if not p.text:
+            logging.error("get [%s] button status failed." % (button))
+            return False, False
+        logging.debug(p.text)
+        resp_json = json.loads(p.text)
+        # ret = resp_json["ret"]
+        if resp_json["ret"] == "hi":  # "lo" TODO: for test
+            return True, True
+        else:
+            return True, False
 
+    def _gateway_button_check(self, button):
+        logging.debug("-")
+        self.cf_msg_func("button", button)
+        print("wait trigger ++++")
+        resp_msg = wait_trigger_q.get()
+        print("wait trigger ----")
+        print(resp_msg)
+        if resp_msg['reply'] == 0:
+            print("test Failed and exit")
+            return False
+
+        timer_cont = 0
+        while True:
+            print("detect button timer %d" % (timer_cont))
+            http_ret, button_ret = self._do_gateway_button_check(button)
+            if not http_ret:
+                return False
+            if not button_ret:
+                if timer_cont >= 5:
+                    return False
+                time.sleep(1)  # TODO: 0.5s is better ?
+                timer_cont += 1
+                continue
+            break
+        return True
+
+    def gateway_button_check(self):
+        logging.debug("-")
+
+        step_id = gwmap.GATEWAY_CHECK_STEP_ID_DEV_BUTTON_RESET
+
+        for bt in gwmap.button_list:
+            if not self._gateway_button_check(bt):
+                self.step_up_func(step_id, 1)
+                return False
+            else:
+                self.step_up_func(step_id, 0)
+                step_id += 1
+        return True
 
     def gateway_check(self):
         logging.debug("-")
         self.gateway_port_check()
         if not self.gateway_led_check():
             return False
+        if not self.gateway_button_check():
+            return False
+        return True
 
     def handle_error(self):
         logging.error("get error")
@@ -212,10 +268,11 @@ class HttpReq:
        # for (step, func) in self.test_list.items():
        #     self.step = step
        #     func()
-
+        ''''''
         if not self.test_list[HDG_TEST_STEP_1_MOD_TEST]():
             logging.debug("mod check failed.")
             return False
+
         if not self.test_list[HDG_TEST_STEP_2_GATEWAY_TEST]():
             return False
         return True

@@ -33,3 +33,6 @@ GatewayCheckListMap = [{"id": 0, "table_msg": ["项目", "子项", "结果", "�
                       {"id": GATEWAY_CHECK_STEP_ID_SYS_WRITE_SN, "table_msg": ["3.3 系统测试-写入SN", None, 0, None], "table_items": []},
                       {"id": GATEWAY_CHECK_STEP_ID_SYS_END_MARK, "table_msg": ["4.1 结束测试-写入标记", None, 0, None], "table_items": []},
                       {"id": GATEWAY_CHECK_STEP_ID_SYS_END_RESET, "table_msg": ["4.2 结束测试-清除数据", None, 0, None], "table_items": []}];
+
+button_list = {'reset': 'RESET键',
+               'sm_config': 'SMARTCONFIG键'};
