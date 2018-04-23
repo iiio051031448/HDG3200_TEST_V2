@@ -17,6 +17,7 @@ import log_db
 import tst_batch
 import hdtHttp
 import tst_conf
+import EXl
 
 
 class GatewayTestThread(QtCore.QThread):
@@ -466,7 +467,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                     ok = False
                     break;
                 _err_cnt += 1
-                # TODO: MAC format check
+
                 if ok:
                     _mac = value.split(":")
                     if _mac.__len__() != 6:
@@ -488,9 +489,18 @@ class Ui_MainWindow(QtWidgets.QWidget):
             gw_test.wait_trigger_q.put(resp_msg)
 
     def generate_logs(self):
-        if not self.test_thread.isFinished():
-            print("test_thread is still running")
+        xl_path = './' + EXl.EXPORT_XL_DIR_PATH + '/' + self.test_batch.get_bat_id()+'.xlsx'
+        filename, _ = QFileDialog.getSaveFileName(self, 'save file',
+                                                  xl_path,
+                                                  'Excel (*.xlsx);;All Files (*)')
+        print("xl_path = " + xl_path)
+        if (self.db_session.export_log_check(xl_path)):
+            reply = QMessageBox.information(self, "消息框标题", "该文件已存在是否覆盖？",
+                                            QMessageBox.Yes | QMessageBox.No)
+            if reply == QMessageBox.No:
+                return
 
+        self.db_session.export_log(xl_path)
 
     def create_db_sesson(self, db_file_path):
         # TODO: need with try:
