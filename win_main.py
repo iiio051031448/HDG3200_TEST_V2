@@ -116,18 +116,28 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.groupBox = QtWidgets.QGroupBox(self.centralwidget)
         self.groupBox.setGeometry(QtCore.QRect(30, 150, 290, 210))
         self.groupBox.setObjectName("groupBox")
-        self.label = QtWidgets.QLabel(self.groupBox)
-        self.label.setGeometry(QtCore.QRect(30, 40, 54, 12))
-        self.label.setObjectName("label")
-        self.lineEdit = QtWidgets.QLineEdit(self.groupBox)
-        self.lineEdit.setGeometry(QtCore.QRect(70, 40, 113, 20))
-        self.lineEdit.setObjectName("lineEdit")
-        self.label_2 = QtWidgets.QLabel(self.groupBox)
-        self.label_2.setGeometry(QtCore.QRect(30, 70, 54, 12))
-        self.label_2.setObjectName("label_2")
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.groupBox)
-        self.lineEdit_2.setGeometry(QtCore.QRect(70, 70, 113, 20))
-        self.lineEdit_2.setObjectName("lineEdit_2")
+        self.this_test_start_time_label = QtWidgets.QLabel(self.groupBox)
+        self.this_test_start_time_label.setGeometry(QtCore.QRect(30, 20, 54, 12))
+        self.this_test_start_time_label.setObjectName("this_test_start_time_label")
+        self.this_test_start_time_lineEdit = QtWidgets.QLineEdit(self.groupBox)
+        self.this_test_start_time_lineEdit.setGeometry(QtCore.QRect(70, 20, 125, 20))
+        self.this_test_start_time_lineEdit.setObjectName("this_test_start_time_lineEdit")
+        self.operator_label = QtWidgets.QLabel(self.groupBox)
+        self.operator_label.setGeometry(QtCore.QRect(30, 50, 54, 12))
+        self.operator_label.setObjectName("operator_label")
+        self.operator_lineEdit = QtWidgets.QLineEdit(self.groupBox)
+        self.operator_lineEdit.setGeometry(QtCore.QRect(70, 50, 125, 20))
+        self.operator_lineEdit.setObjectName("operator_lineEdit")
+        self.gw_ip_addr_label = QtWidgets.QLabel(self.groupBox)
+        self.gw_ip_addr_label.setGeometry(QtCore.QRect(30, 80, 60, 12))
+        self.gw_ip_addr_label.setObjectName("gw_ip_addr_label")
+        self.gw_ip_addr_lineEdit = QtWidgets.QLineEdit(self.groupBox)
+        self.gw_ip_addr_lineEdit.setGeometry(QtCore.QRect(100, 80, 100, 20))
+        self.gw_ip_addr_lineEdit.setObjectName("gw_ip_addr_lineEdit")
+        self.gw_ip_addr_lineEdit.setReadOnly(True)
+        self.gw_ip_addr_set_pbt = QtWidgets.QPushButton(self.groupBox)
+        self.gw_ip_addr_set_pbt.setGeometry(QtCore.QRect(210, 80, 50, 23))
+        self.gw_ip_addr_set_pbt.setObjectName("gw_ip_addr_set_pbt")
         self.pBtTestStart = QtWidgets.QPushButton(self.groupBox)
         self.pBtTestStart.setGeometry(QtCore.QRect(30, 120, 75, 23))
         self.pBtTestStart.setObjectName("pushButton")
@@ -210,6 +220,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.pBtGenrateLogs.clicked.connect(self.generate_logs)
         self.new_batch_act.triggered.connect(self.create_batch)
         self.open_batch_act.triggered.connect(self.open_batch)
+        self.gw_ip_addr_set_pbt.clicked.connect(self.set_gw_ip_addr)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -235,10 +246,13 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.tst_bat_failed_count_lable.setText(_translate("MainWindow", "失败次数"))
 
         self.groupBox.setTitle(_translate("MainWindow", "测试"))
-        self.label.setText(_translate("MainWindow", "日期"))
-        self.lineEdit.setText(_translate("MainWindow", "2018-04-12"))
-        self.label_2.setText(_translate("MainWindow", "时间"))
-        self.lineEdit_2.setText(_translate("MainWindow", "15:27:33"))
+        self.this_test_start_time_label.setText(_translate("MainWindow", "时间"))
+        self.this_test_start_time_lineEdit.setText(_translate("MainWindow",time.strftime("%Y-%m-%d %H:%M:%S")))
+        self.operator_label.setText(_translate("MainWindow", "操作者"))
+        self.operator_lineEdit.setText(_translate("MainWindow", "操作者"))
+        self.gw_ip_addr_label.setText(_translate("MainWindow", "网关IP地址"))
+        self.gw_ip_addr_lineEdit.setText(_translate("MainWindow", "192.168.0.66"))
+        self.gw_ip_addr_set_pbt.setText(_translate("MainWindow", "设置IP"))
         self.pBtTestStart.setText(_translate("MainWindow", "开始测试"))
         self.pBtGenrateLogs.setText(_translate("MainWindow", "生成报告"))
         self.pushButton_3.setText(_translate("MainWindow", "查看日志"))
@@ -320,7 +334,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.retranslateCheckListItemUi()
         self.reset_gateway_status()
         self.pBtTestStart.setEnabled(False)
-        self.test_thread = gw_test.MyThread()  # msg with self
+        self.test_thread = gw_test.MyThread(self.gw_ip_addr_lineEdit.text())  # msg with self
         self.test_thread.test_status_signal.connect(self.status_set)
         self.test_thread.test_step_signal.connect(self.updata_step)
         self.test_thread.test_end_signal.connect(self.one_test_end)
@@ -423,6 +437,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             gw_test.wait_trigger_q.put(resp_msg)
         elif cf_msg['type'] == "mac":
             value, ok = QInputDialog.getText(self, "输入框标题", "请输入MAC\n\nMAC:", QLineEdit.Normal, "MAC")
+            # TODO: MAC format check
             resp_msg = {"type": cf_msg['type'], "data": value,
                         "reply": 1 if ok else 0}
             gw_test.wait_trigger_q.put(resp_msg)
@@ -485,3 +500,10 @@ class Ui_MainWindow(QtWidgets.QWidget):
         else:
             print("No No No No")
 
+    def set_gw_ip_addr(self):
+        print("-")
+        _translate = QtCore.QCoreApplication.translate
+        value, ok = QInputDialog.getText(self, "输入框标题", "请输入网关IP地址\n\nIP:",
+                                         QLineEdit.Normal, self.gw_ip_addr_lineEdit.text())
+        if ok:
+            self.gw_ip_addr_lineEdit.setText(_translate("MainWindow", value))

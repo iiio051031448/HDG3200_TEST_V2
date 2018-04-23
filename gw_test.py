@@ -7,7 +7,7 @@ import time
 import gw_check_map as gwmap
 import queue
 
-host = "192.168.199.134"
+def_host = "192.168.199.134"
 
 # url = "http://" + host + "/cgi-bin/luci"
 # data = {"luci_username": "root", "luci_password": ""}
@@ -39,17 +39,18 @@ class MyThread(QThread):
     test_end_signal = pyqtSignal(dict)
     test_confirm_signal = pyqtSignal(dict)
 
-    def __init__(self, sec=1000, parent=None):
+    def __init__(self, gw_host=def_host, parent=None):
         super().__init__()
-        self.sec = sec
         self.is_repeat = False
+        self.gw_host = gw_host
 
     def run(self):
         print("---")
         # TODO: started with a test id(time + seq)
+        #logging.debug("gateway host ip : [%s]" % (self.gw_host))
         self.up_test_start_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         self.test_status("GatewayTestThread start")
-        self.req = http.HttpReq(host,  self.test_step, self.confirm_msg)
+        self.req = http.HttpReq(self.gw_host,  self.test_step, self.confirm_msg)
         self.test_status("检测网关中")
         self.req.gatewaydetect()
         mac=self.req.gateway_get_mac()
