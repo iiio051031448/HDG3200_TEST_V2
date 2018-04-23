@@ -16,6 +16,7 @@ import gw_check_map as gwmap
 import log_db
 import tst_batch
 import hdtHttp
+import tst_conf
 
 
 class GatewayTestThread(QtCore.QThread):
@@ -40,6 +41,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.db_session = None
         self.db_file_path = None
         self.test_batch = None
+        self.conf = tst_conf.TstConf()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -128,6 +130,10 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.operator_lineEdit = QtWidgets.QLineEdit(self.groupBox)
         self.operator_lineEdit.setGeometry(QtCore.QRect(70, 50, 125, 20))
         self.operator_lineEdit.setObjectName("operator_lineEdit")
+        self.operator_lineEdit.setReadOnly(True)
+        self.operator_pbt = QtWidgets.QPushButton(self.groupBox)
+        self.operator_pbt.setGeometry(QtCore.QRect(210, 50, 50, 20))
+        self.operator_pbt.setObjectName("operator_pbt")
         self.gw_ip_addr_label = QtWidgets.QLabel(self.groupBox)
         self.gw_ip_addr_label.setGeometry(QtCore.QRect(30, 80, 60, 12))
         self.gw_ip_addr_label.setObjectName("gw_ip_addr_label")
@@ -221,6 +227,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.new_batch_act.triggered.connect(self.create_batch)
         self.open_batch_act.triggered.connect(self.open_batch)
         self.gw_ip_addr_set_pbt.clicked.connect(self.set_gw_ip_addr)
+        self.operator_pbt.clicked.connect(self.set_gw_operator)
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -250,6 +257,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.this_test_start_time_lineEdit.setText(_translate("MainWindow",time.strftime("%Y-%m-%d %H:%M:%S")))
         self.operator_label.setText(_translate("MainWindow", "操作者"))
         self.operator_lineEdit.setText(_translate("MainWindow", "操作者"))
+        self.operator_pbt.setText(_translate("MainWindow", "修改"))
         self.gw_ip_addr_label.setText(_translate("MainWindow", "网关IP地址"))
         self.gw_ip_addr_lineEdit.setText(_translate("MainWindow", "192.168.0.66"))
         self.gw_ip_addr_set_pbt.setText(_translate("MainWindow", "设置IP"))
@@ -272,6 +280,18 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.new_batch_act.setToolTip(_translate("MainWindow", "new_bat"))
         self.open_batch_act.setText(_translate("MainWindow", "打开批次"))
         self.open_batch_act.setToolTip(_translate("MainWindow", "open_batch"))
+
+        if self.conf.conf_list[tst_conf.TST_CONF_ITEM_BAT_FILE]:
+            print('-')
+            self.test_batch = tst_batch.TBatch(self.conf.conf_list[tst_conf.TST_CONF_ITEM_BAT_FILE])
+            if self.test_batch.load_batch_exist():
+                self.db_file_path = self.test_batch.get_db_file()
+                self.create_db_sesson(self.db_file_path)
+                self.show_batch_msg()
+                self.gw_ip_addr_lineEdit.setText(_translate("MainWindow",
+                                                            self.conf.conf_list[tst_conf.TST_CONF_ITEM_GW_IP]))
+                self.operator_lineEdit.setText(_translate("MainWindow",
+                                                          self.conf.conf_list[tst_conf.TST_CONF_ITEM_OPERATOR]))
 
     def retranslateCheckListItemUi(self, reset=0):
         _translate = QtCore.QCoreApplication.translate
@@ -378,7 +398,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         if not self.db_session:
             print("db_session is not ready")
             return
-        t_log_new = self.db_session.add_log(mac=self.gatewayMac.text(), operator="ed",
+        t_log_new = self.db_session.add_log(mac=self.gatewayMac.text(), operator=self.operator_lineEdit.text(),
                                     start_time=self.onetest_start_time_line.text(),
                                     end_time=self.onetest_end_time_line.text(), test_id="HDG201804060001",
                                     is_repeat=is_repeat,
@@ -473,6 +493,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 self.db_file_path = self.test_batch.get_db_file()
                 self.create_db_sesson(self.db_file_path)
                 self.show_batch_msg()
+                self.conf.update_batch_file(filename)
 
 
     def open_batch(self):
@@ -489,6 +510,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 self.db_file_path = self.test_batch.get_db_file()
                 self.create_db_sesson(self.db_file_path)
                 self.show_batch_msg()
+                self.conf.update_batch_file(filename)
 
     def show_open_batch_warning(self):
         reply = QMessageBox.warning(self,
@@ -500,6 +522,15 @@ class Ui_MainWindow(QtWidgets.QWidget):
         else:
             print("No No No No")
 
+    def set_gw_operator(self):
+        print("-")
+        _translate = QtCore.QCoreApplication.translate
+        value, ok = QInputDialog.getText(self, "输入框标题", "请输入操作者信息\n\n操作者信息:",
+                                         QLineEdit.Normal, self.operator_lineEdit.text())
+        if ok:
+            self.operator_lineEdit.setText(_translate("MainWindow", value))
+            self.conf.update_operator(value)
+
     def set_gw_ip_addr(self):
         print("-")
         _translate = QtCore.QCoreApplication.translate
@@ -507,3 +538,4 @@ class Ui_MainWindow(QtWidgets.QWidget):
                                          QLineEdit.Normal, self.gw_ip_addr_lineEdit.text())
         if ok:
             self.gw_ip_addr_lineEdit.setText(_translate("MainWindow", value))
+            self.conf.update_gw_ip(value)

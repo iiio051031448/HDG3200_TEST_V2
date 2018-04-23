@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import errno
 
 TST_BATCH_DBS_DIR_PATH="tst_dbs"
 TST_BATCH_BATS_DIR_PATH="tst_batchs"
@@ -49,7 +50,15 @@ class TBatch:
             self.file.write(t_bat_msg_strs)
             self.file.close()
         else:
-            self.file = open(self.batch_file_path, "r+")
+            try:
+                self.file = open(self.batch_file_path, "r+")
+            except OSError as e:
+                if e.errno == errno.ENOENT:
+                    print("file %s is not exist!" % self.batch_file_path)
+                    # do your FileNotFoundError code here
+                    return False
+                else:
+                    raise
             print(self.file)
             t_bat_msg_strs = self.file.read()
             print(t_bat_msg_strs)
