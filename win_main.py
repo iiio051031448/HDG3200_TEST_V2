@@ -456,8 +456,33 @@ class Ui_MainWindow(QtWidgets.QWidget):
                         "reply": 1 if reply == QMessageBox.Yes else 0}
             gw_test.wait_trigger_q.put(resp_msg)
         elif cf_msg['type'] == "mac":
-            value, ok = QInputDialog.getText(self, "输入框标题", "请输入MAC\n\nMAC:", QLineEdit.Normal, "MAC")
-            # TODO: MAC format check
+            _box_notice = "请输入MAC\n\nMAC:"
+            _box_notice_err = "输入MAC地址格式有误，请重新输入MAC\n\nMAC:"
+            _err_cnt = 0
+            while True:
+                value, ok = QInputDialog.getText(self, "输入框标题", _box_notice, QLineEdit.Normal, "MAC")
+                if _err_cnt >= 5:
+                    QMessageBox.information(self, "消息框标题", "输入次数过多，请检测您的数据", QMessageBox.Yes)
+                    ok = False
+                    break;
+                _err_cnt += 1
+                # TODO: MAC format check
+                if ok:
+                    _mac = value.split(":")
+                    if _mac.__len__() != 6:
+                        _box_notice = _box_notice_err
+                        continue
+                    for _m in _mac:
+                        try:
+                            _m_int = int(_m, 16)
+                        except:
+                            print("translate to integer failed.")
+                            _box_notice = _box_notice_err
+                            continue
+                    break
+                else:
+                    break
+
             resp_msg = {"type": cf_msg['type'], "data": value,
                         "reply": 1 if ok else 0}
             gw_test.wait_trigger_q.put(resp_msg)
