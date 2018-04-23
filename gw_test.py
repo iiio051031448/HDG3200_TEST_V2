@@ -74,7 +74,7 @@ class MyThread(QThread):
         self.up_test_end_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         if test_result:
             logging.debug("test success.")
-            self.end_test(0, "ALL TEST SUCCESS")
+            self.end_test(0, "SUCCESS")
             #return True
         else :
             logging.debug("test failed.")

@@ -96,12 +96,20 @@ class SqlSession:
 
     def export_log(self, xl_path):
         exl = EXl.ExportXL()
-        logs = self.session.query(TLog).all()
+
+        exl.active_now("成功")
+        logs = self.session.query(TLog).filter(TLog.result == "SUCCESS").all()
         for _log in logs:
             exl.add_item(_log.mac, _log.operator, _log.start_time, _log.end_time, _log.test_id,
                          "是" if _log.is_repeat else "否",
                          _log.result, _log.failed_info, _log.note)
-        print(logs)
+        exl.active_new("失败")
+        logs = self.session.query(TLog).filter(TLog.result != "SUCCESS").all()
+        for _log in logs:
+            exl.add_item(_log.mac, _log.operator, _log.start_time, _log.end_time, _log.test_id,
+                         "是" if _log.is_repeat else "否",
+                         _log.result, _log.failed_info, _log.note)
+
         exl.save(xl_path)
 
 
@@ -110,15 +118,17 @@ if __name__ == "__main__":
     for m6 in range(1, 20):
         t_log_new = sql_ses.add_log(mac='11:22:33:44:58:%02X' % m6, operator="ed", start_time=time.strftime("%Y-%m-%d %H:%M:%S"),
                           end_time=time.strftime("%Y-%m-%d %H:%M:%S"), test_id="HDG201804060001", is_repeat=False,
-                          result="成功", failed_info="ALL SUCCESS", note="")
+                          result="SUCCESS" if m6 < 17 else "ERROR", failed_info="ALL SUCCESS", note="")
+
 
     t_log = sql_ses.find_item("11:22:33:44:58:6F")
     print(t_log)
+    xl_path = './' + EXl.EXPORT_XL_DIR_PATH + '/2018-04-23.xlsx'
     if t_log:
         sql_ses.updata_operator(t_log, "刘德华5")
-    if sql_ses.export_log_check("2018-04-23"):
+    if sql_ses.export_log_check(xl_path):
         print("exist")
-    sql_ses.export_log("2018-04-23")
+    sql_ses.export_log(xl_path)
 
 
 # session.add(ed_user)
