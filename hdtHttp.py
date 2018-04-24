@@ -35,6 +35,9 @@ class HttpReq:
             logging.debug(f.status_code)
             logging.debug(f.cookies.get('sysauth'))
             logging.debug(f.headers['Location'])
+            if not f.headers['Location']:
+                logging.error("Location is None")
+                return False
 
             self.cookie = f.cookies.get('sysauth')
 
@@ -73,7 +76,6 @@ class HttpReq:
                     if it["ifname"] == "ra":
                         return it["mac"]
 
-
     def mod_check_pingcheck(self, resp, action):
         # {"status":"OK","ret":"PING CHECK SUCCESS","action":"pingcheck","value":"001"}
         logging.debug(resp)
@@ -91,7 +93,6 @@ class HttpReq:
             if action == "pingcheck":
                 self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 0)
             return True
-
 
     def mod_check_sn_check(self, resp, action):
         # {"status":"OK","ret":"GET MOD INFO SUCCESS","action":"sn_check","value":"001"}
@@ -207,7 +208,7 @@ class HttpReq:
         logging.debug(p.text)
         resp_json = json.loads(p.text)
         # ret = resp_json["ret"]
-        if resp_json["ret"] == "hi":  # "lo" TODO: for test
+        if resp_json["ret"] == "lo":
             return True, True
         else:
             return True, False
@@ -367,11 +368,8 @@ class HttpReq:
     # TODO: this function same to system_check_write_sn
     def finish_test_write_factory_flag(self):
         sn = ""
-
         logging.debug('-')
-
-        # TODO: "none" is for test, real string is "done"
-        purl = self.furl + "/admin/factory/data_set?dname=factory_reset&dvalue=none"
+        purl = self.furl + "/admin/factory/data_set?dname=factory_reset&dvalue=done"
         p = self.http_get(purl, 5)
         if not p.text:
             logging.error("data_set failed.")
@@ -381,7 +379,7 @@ class HttpReq:
         # ret = resp_json["ret"]
         if not resp_json["ret"]:
             return False
-        if resp_json['ret'] != "none":
+        if resp_json['ret'] != "done":
             logging.error("factory flag write failed.")
             return False
 
