@@ -148,6 +148,9 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.pBtTestStart = QtWidgets.QPushButton(self.groupBox)
         self.pBtTestStart.setGeometry(QtCore.QRect(30, 120, 75, 23))
         self.pBtTestStart.setObjectName("pushButton")
+        self.pBtTestStop = QtWidgets.QPushButton(self.groupBox)
+        self.pBtTestStop.setGeometry(QtCore.QRect(115, 120, 75, 23))
+        self.pBtTestStop.setObjectName("pBtTestStop")
         self.pBtGenrateLogs = QtWidgets.QPushButton(self.groupBox)
         self.pBtGenrateLogs.setGeometry(QtCore.QRect(115, 150, 75, 23))
         self.pBtGenrateLogs.setObjectName("pushButton_2")
@@ -224,6 +227,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.retranslateUi(MainWindow)
 
         self.pBtTestStart.clicked.connect(self.start_test)
+        self.pBtTestStop.clicked.connect(self.stop_test)
         self.pBtGenrateLogs.clicked.connect(self.generate_logs)
         self.new_batch_act.triggered.connect(self.create_batch)
         self.open_batch_act.triggered.connect(self.open_batch)
@@ -263,6 +267,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.gw_ip_addr_lineEdit.setText(_translate("MainWindow", "192.168.0.66"))
         self.gw_ip_addr_set_pbt.setText(_translate("MainWindow", "设置IP"))
         self.pBtTestStart.setText(_translate("MainWindow", "开始测试"))
+        self.pBtTestStop.setText(_translate("MainWindow", "停止测试"))
         self.pBtGenrateLogs.setText(_translate("MainWindow", "生成报告"))
         self.pushButton_3.setText(_translate("MainWindow", "查看日志"))
 
@@ -362,6 +367,17 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.test_thread.test_confirm_signal.connect(self.test_confirm)
         self.test_thread.start()
 
+    def stop_test(self):
+        print("-")
+        if self.test_thread and not self.test_thread.isFinished():
+            print("try terminal test thread")
+            self.test_thread.terminate()
+
+            end_msg = {"result": 0, "info": "STOP", "is_repeat": self.test_thread.is_repeat}
+            self.one_test_end(end_msg)
+        else:
+            print("test thread is not started")
+
     def status_set(self, status_msg):
         # status_msg : {"type": "status", "msg": "testing ..."}
         _translate = QtCore.QCoreApplication.translate
@@ -377,7 +393,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             else:
                 reply = QMessageBox.question(self,
                                              "消息框标题",
-                                             "改网关已经测试过，是否再次测试？",
+                                             "该网关已经测试过，是否再次测试？",
                                              QMessageBox.Yes | QMessageBox.No)
                 resp_msg = {"type": "mac_find", "data": True if reply == QMessageBox.Yes else False, "is_repeat": True}
 
