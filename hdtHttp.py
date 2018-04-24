@@ -35,6 +35,9 @@ class HttpReq:
             logging.debug(f.status_code)
             logging.debug(f.cookies.get('sysauth'))
             logging.debug(f.headers['Location'])
+            if f.status_code != 302:
+                logging.error("need a 302 response")
+                return False
             if not f.headers['Location']:
                 logging.error("Location is None")
                 return False
