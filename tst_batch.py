@@ -72,9 +72,11 @@ class TBatch:
     def load_batch_exist(self):
         return self.load_batch(False)
 
-    def upload_batch(self, success_count, failed_count):
-        self.t_bat_msg['success'] = success_count
-        self.t_bat_msg['failed'] = failed_count
+    def upload_batch(self, success_count=None, failed_count=None):
+        if success_count:
+            self.t_bat_msg['success'] = success_count
+        if failed_count:
+            self.t_bat_msg['failed'] = failed_count
         t_bat_msg_strs = json.dumps(self.t_bat_msg)
 
         self.file = open(self.batch_file_path, "r+")

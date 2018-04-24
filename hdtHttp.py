@@ -113,8 +113,7 @@ class HttpReq:
         if rssi_v < -45:
             logging.error(self.step + " - " "rssi check error")
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 1, ret_str)
-            # return False # TODO: for test
-            return True
+            return False
         else:
             logging.error(self.step + " - " "rssi check success")
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 0)

@@ -422,7 +422,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                                     result=result_str, failed_info=failed_info_strs, note="")
 
     def one_test_end(self, end_msg):
-        # end_msg : {"result": 0, "info" : "ALL SUCCESS", "is_repeat": True}
+        # end_msg : {"result": 0, "info" : "SUCCESS", "is_repeat": True}
         print("one_test_end, result : %d, info : %s is_repeat %d" %
               (end_msg["result"], end_msg["info"], end_msg['is_repeat']))
         print("++++++++++++++++++++++")
@@ -447,6 +447,16 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 failed_info = failed_info + ("%-25s %-25s %-15s %-15s\n" % (line[0], line[1], line[2], line[3]))
 
         self.one_test_end_save_record(end_msg["info"], failed_info, end_msg['is_repeat'])
+
+        _translate = QtCore.QCoreApplication.translate
+        if end_msg["info"] == "SUCCESS":
+            _cnt = self.test_batch.get_success_count() + 1
+            self.tst_bat_success_count_eline.setText(_translate("MainWindow", str(_cnt)))
+            self.test_batch.upload_batch(success_count=_cnt)
+        elif end_msg["info"] == "ERROR":
+            _cnt = self.test_batch.get_failed_count() + 1
+            self.tst_bat_failed_count_eline.setText(_translate("MainWindow", str(_cnt)))
+            self.test_batch.upload_batch(failed_count=_cnt)
 
         self.pBtTestStart.setEnabled(True)
         # if not self.test_thread.isFinished():
