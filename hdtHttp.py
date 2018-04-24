@@ -65,7 +65,7 @@ class HttpReq:
         purl = self.furl + "/admin/factory/mac_check"
         # {"status":"OK","ret":[{"mac":"D0:6F:4A:F3:A4:BF","ifname":"ra"},{"mac":"D0:6F:4A:F3:A4:C0","ifname":"lan"},{"mac":"D0:6F:4A:F3:A4:C1","ifname":"wan"}],"value":"001"}
         p = self.http_get(purl, 5)
-        print(p.text)
+        logging.debug(p.text)
         if p and p.text:
             ret_json = json.loads(p.text)
             if ret_json:
@@ -174,7 +174,7 @@ class HttpReq:
         if int(resp_json["ret"]) == 0:
             logging.debug("set led color to [" + color + "] success")
             resp_msg = self.cf_msg_func("led", color)
-            print(resp_msg)
+            logging.debug(resp_msg)
             if resp_msg['reply'] == 1:
                 return True
             else:
@@ -215,14 +215,14 @@ class HttpReq:
     def _gateway_button_check(self, button):
         logging.debug("-")
         resp_msg = self.cf_msg_func("button", button)
-        print(resp_msg)
+        logging.debug(resp_msg)
         if resp_msg['reply'] == 0:
-            print("test Failed and exit")
+            logging.error("test Failed and exit")
             return False
 
         timer_cont = 0
         while True:
-            print("detect button timer %d" % (timer_cont))
+            logging.debug("detect button timer %d" % (timer_cont))
             http_ret, button_ret = self._do_gateway_button_check(button)
             if not http_ret:
                 return False
@@ -270,16 +270,17 @@ class HttpReq:
         if not resp_json["ret"]:
             return False
         for fi_item in resp_json['ret']:
-            print(fi_item)
+            logging.debug(fi_item)
             if not fi_item['dname'] or not fi_item['value']:
                 return False
             if not gwmap.factory_datas[fi_item['dname']]:
                 return False
             else:
                 if gwmap.factory_datas[fi_item['dname']] != fi_item['value']:
+                    logging.error("%s = %s" % (gwmap.factory_datas[fi_item['dname']], fi_item['value']))
                     return False
                 else:
-                    print(fi_item['dname'] + "check success.")
+                    logging.debug(fi_item['dname'] + "check success.")
         return True
 
     def system_check_mac_check(self):
@@ -298,17 +299,17 @@ class HttpReq:
             mac[mac_item["ifname"]] = [int(x, 16) for x in mac_item['mac'].split(":")]
         if mac['ra'][5] + 1 != mac['lan'][5] or mac['ra'][5] + 2 != mac['wan'][5]:
             return False
-        print(mac)
+        logging.debug(mac)
 
         resp_msg = self.cf_msg_func("mac", "get mac")
-        print(resp_msg)
+        logging.debug(resp_msg)
         if resp_msg['reply'] == 0:
             return False
         if not resp_msg['data']:
             return False
-        print(resp_msg['data'])
+        logging.debug(resp_msg['data'])
         t_mac = [int(x, 16) for x in resp_msg['data'].split(':')]
-        print(t_mac)
+        logging.debug(t_mac)
         if mac['ra'] != t_mac:
             return False
         self.ra_mac = mac['ra']
@@ -333,7 +334,7 @@ class HttpReq:
         # ret = resp_json["ret"]
         if not resp_json["ret"]:
             return False
-        print("resp_json['ret']:[%s] == sn:[%s]" % (resp_json['ret'], sn))
+        logging.debug("resp_json['ret']:[%s] == sn:[%s]" % (resp_json['ret'], sn))
         if resp_json['ret'] != sn:
             logging.error("sn write failed.")
             return False
