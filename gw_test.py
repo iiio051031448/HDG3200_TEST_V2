@@ -17,7 +17,7 @@ wait_trigger_q = queue.Queue()
 
 class GatewayTest:
     def __init__(self):
-        print("-")
+        logging.debug("-")
 
     def run(self):
         self.req = http.HttpReq(host)
@@ -45,7 +45,7 @@ class MyThread(QThread):
         self.gw_host = gw_host
 
     def run(self):
-        print("---")
+        logging.debug("---")
         # TODO: started with a test id(time + seq)
         #logging.debug("gateway host ip : [%s]" % (self.gw_host))
         self.up_test_start_time(time.strftime("%Y-%m-%d %H:%M:%S"))
@@ -56,10 +56,10 @@ class MyThread(QThread):
         mac=self.req.gateway_get_mac()
         logging.debug("gateway MAC : %s", mac)
         self.up_gw_mac(mac)
-        print("wait mac trigger ++++")
+        logging.debug("wait mac trigger ++++")
         resp_msg = wait_trigger_q.get()
-        print("wait mac trigger ----")
-        print(resp_msg)
+        logging.debug("wait mac trigger ----")
+        logging.debug(resp_msg)
         self.is_repeat = resp_msg['is_repeat']
         if not resp_msg['data']:
             logging.debug("stop check")
@@ -99,7 +99,7 @@ class MyThread(QThread):
 
     def test_step(self, step, result, info=None):
         step_msg = {"step": step, "result": result, "info": info}
-        # print("step : %d, result : %d" % (step_msg["step"], step_msg["result"]))
+        # logging.debug("step : %d, result : %d" % (step_msg["step"], step_msg["result"]))
         self.test_step_signal.emit(step_msg)
 
     def end_test(self, result, info):
@@ -110,9 +110,9 @@ class MyThread(QThread):
     def confirm_msg(self, type, data):
         cf_msg =  {"type": type, "data": data}
         self.test_confirm_signal.emit(cf_msg)
-        print("wait trigger ++++")
+        logging.debug("wait trigger ++++")
         resp_msg = wait_trigger_q.get()
-        print("wait trigger ----")
+        logging.debug("wait trigger ----")
         return resp_msg
 
 
