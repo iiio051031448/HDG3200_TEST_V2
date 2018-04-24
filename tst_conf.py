@@ -13,7 +13,7 @@ TST_CONF_ITEM_GW_IP="gw_ip"
 
 class TstConf:
     def __init__(self):
-        print('-')
+        logging.debug('-')
         self.conf_list = None
         if not os.path.exists(TST_CONF_FILE):
             self.conf_list = {"batch_file": "",
@@ -26,7 +26,7 @@ class TstConf:
         else:
             self.file = open(TST_CONF_FILE, "r+")
             conf_json_str = self.file.read()
-            print(conf_json_str)
+            logging.debug(conf_json_str)
             self.conf_list = json.loads(conf_json_str)
             self.file.close()
 

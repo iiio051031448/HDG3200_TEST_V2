@@ -140,7 +140,7 @@ class HttpReq:
         for check in mod_check_list:
             purl = self.furl + "/admin/factory/module_check/" + check
             p = self.http_get(purl, 5)
-            if not mod_check_actions[check](p.text, check):
+            if not mod_check_actions[check](p.text, check):  # TODO: for pingcheck need retry
                 return False
         return True
 

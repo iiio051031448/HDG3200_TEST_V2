@@ -2,6 +2,7 @@ import json
 import os
 import time
 import errno
+import logging
 
 TST_BATCH_DBS_DIR_PATH="tst_dbs"
 TST_BATCH_BATS_DIR_PATH="tst_batchs"
@@ -12,16 +13,16 @@ def check_bats_dir():
         if os.path.isdir(TST_BATCH_BATS_DIR_PATH):
             return True
         else:
-            print(TST_BATCH_BATS_DIR_PATH + "is not a dir")
+            logging.debug(TST_BATCH_BATS_DIR_PATH + "is not a dir")
             return False
     else:
-        print(TST_BATCH_BATS_DIR_PATH + "is not exist, create it")
+        logging.debug(TST_BATCH_BATS_DIR_PATH + "is not exist, create it")
         os.mkdir(TST_BATCH_BATS_DIR_PATH)
         return True
 
 class TBatch:
     def __init__(self, batch_file_path):
-        print('-')
+        logging.debug('-')
         self.file = None
         self.t_bat_msg = None
         self.batch_file_path = batch_file_path
@@ -29,15 +30,15 @@ class TBatch:
     def load_batch(self, new):
         if new:
             if not os.path.exists(TST_BATCH_DBS_DIR_PATH):
-                print(TST_BATCH_DBS_DIR_PATH + "is not exist, create it")
+                logging.debug(TST_BATCH_DBS_DIR_PATH + "is not exist, create it")
                 os.mkdir(TST_BATCH_DBS_DIR_PATH)
             else:
                 if not os.path.isdir(TST_BATCH_DBS_DIR_PATH):
-                    print(TST_BATCH_DBS_DIR_PATH + "is not dir")
+                    logging.debug(TST_BATCH_DBS_DIR_PATH + "is not dir")
                     return False
 
             if os.path.exists(self.batch_file_path):
-                print("batch file[%s] is already exist !!!" % (self.batch_file_path))
+                logging.debug("batch file[%s] is already exist !!!" % (self.batch_file_path))
                 return False
             self.file = open(self.batch_file_path, "w+")
             time_str = time.strftime("%Y%m%d_%H%M%S")
@@ -54,14 +55,14 @@ class TBatch:
                 self.file = open(self.batch_file_path, "r+")
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print("file %s is not exist!" % self.batch_file_path)
+                    logging.debug("file %s is not exist!" % self.batch_file_path)
                     # do your FileNotFoundError code here
                     return False
                 else:
                     raise
-            print(self.file)
+            logging.debug(self.file)
             t_bat_msg_strs = self.file.read()
-            print(t_bat_msg_strs)
+            logging.debug(t_bat_msg_strs)
             self.file.close()
             self.t_bat_msg = json.loads(t_bat_msg_strs)
         return True
@@ -102,7 +103,7 @@ if __name__ == "__main__":
     t_bat = TBatch("HDGZ3200_20180420_04201505.tbat") # HDGZ3200_20180420.tbat
     if t_bat.load_batch(False):
         t_bat.upload_batch(100, 3)
-        print(t_bat.get_db_file())
+        logging.debug(t_bat.get_db_file())
 
 
 

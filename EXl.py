@@ -1,5 +1,6 @@
 from openpyxl import Workbook
 import os
+import logging
 
 EXPORT_XL_DIR_PATH="日志报表"
 
@@ -10,7 +11,7 @@ def file_exist(xl_path):
 
 class ExportXL:
     def __init__(self):
-        print("-")
+        logging.debug("-")
         self.workbook = Workbook()
         self.worksheet = None
         self.worksheet_nex_row = 1
@@ -28,7 +29,7 @@ class ExportXL:
         self.worksheet = self.workbook.active
         if new_sheet_name:
             self.worksheet.title = new_sheet_name
-        print(self.worksheet)
+        logging.debug(self.worksheet)
         self.create_header()
 
     def active_new(self, sheet_name):
@@ -44,7 +45,7 @@ class ExportXL:
     def add_row(self, row_data):
         # row_data = [mac, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note]
         if not self.worksheet:
-            print("worksheet is not active !")
+            logging.debug("worksheet is not active !")
             return
         for j, h in enumerate(row_data):
             self.worksheet.cell(row=self.worksheet_nex_row, column=j + 1, value=h)

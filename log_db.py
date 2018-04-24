@@ -75,19 +75,19 @@ class SqlSession:
         self.session.commit()
 
     def add_log(self, mac, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note=""):
-        print("mac:[%s], operator:[%s], start_time:[%s], end_time:[%s], test_id:[%s], is_repeat[%d], "
+        logging.debug("mac:[%s], operator:[%s], start_time:[%s], end_time:[%s], test_id:[%s], is_repeat[%d], "
               "result[%s], failed_info[%s], note[%s]" %
               (mac, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note))
         t_log = self.find_item(mac)
         if not t_log:
-            print("NOT FIND ITME : [%s]" % mac)
+            logging.debug("NOT FIND ITME : [%s]" % mac)
             t_log = TLog(mac=mac, operator=operator, start_time=start_time,
                          end_time=end_time, test_id=test_id, is_repeat=is_repeat,
                          result=result, failed_info=failed_info, note=note)
             self.session.add(t_log)
             self.session.commit()
         else:
-            print("FINDED ITME : [%s]" % mac)
+            logging.debug("FINDED ITME : [%s]" % mac)
             self.update_log(t_log, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note)
         return t_log
 
@@ -122,12 +122,12 @@ if __name__ == "__main__":
 
 
     t_log = sql_ses.find_item("11:22:33:44:58:6F")
-    print(t_log)
+    logging.debug(t_log)
     xl_path = './' + EXl.EXPORT_XL_DIR_PATH + '/2018-04-23.xlsx'
     if t_log:
         sql_ses.updata_operator(t_log, "刘德华5")
     if sql_ses.export_log_check(xl_path):
-        print("exist")
+        logging.debug("exist")
     sql_ses.export_log(xl_path)
 
 
