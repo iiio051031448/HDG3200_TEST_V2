@@ -1,16 +1,33 @@
 import logging
 import win
+import instance_lock as i_lock
+import atexit
 
 
 LOG_FORMAT="%(asctime)s - %(levelname)s - %(funcName)s - %(lineno)d - %(message)s "
 logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
-# TODO: only one test thread can be run, one time
+one_lock = None
+
+
+def exit_cleanup():
+    logging.error("=======exit_cleanup========")
+    if one_lock:
+        one_lock.unlock()
+
+atexit.register(exit_cleanup)
+
+one_lock = i_lock.OneInstanceLock()
 
 main_win = win.hdg3200_win()
-main_win.show_win()
+if not one_lock.is_locked():
+    main_win.show_win()
+else:
+    main_win.show_one_instance_warning_box()
 
 logging.debug("--------------- EXITTING ---------------")
+
+one_lock.unlock()
 
 '''
 try:
