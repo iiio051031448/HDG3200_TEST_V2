@@ -148,8 +148,25 @@ class HttpReq:
         for check in mod_check_list:
             purl = self.furl + "/admin/factory/module_check/" + check
             p = self.http_get(purl, 5)
-            if not mod_check_actions[check](p.text, check):  # TODO: for pingcheck need retry
-                return False
+            if not mod_check_actions[check](p.text, check):
+                # -------- for pingcheck need retry --------
+                retry_count = 0
+                if check == "pingcheck":
+                    while True:
+                        if retry_count < 5:
+                            time.sleep(2)
+                            retry_count += 1
+                            p = self.http_get(purl, 5)
+                            if not mod_check_actions[check](p.text, check):
+                                logging.error("check failed. will try again. retry_count:[%d]", retry_count)
+                            else:
+                                break
+                        else:
+                            # retry too many time, treat as an error.
+                            return False
+                # -------- retry END --------
+                else:
+                    return False
         return True
 
 
