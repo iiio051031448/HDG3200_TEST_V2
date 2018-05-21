@@ -510,6 +510,9 @@ class Ui_MainWindow(QtWidgets.QWidget):
             gw_test.wait_trigger_q.put(resp_msg)
 
     def generate_logs(self):
+        if self.test_batch == None:
+            self.show_open_batch_warning()
+            return
         xl_path = './' + EXl.EXPORT_XL_DIR_PATH + '/' + self.test_batch.get_bat_id()+'.xlsx'
         filename, _ = QFileDialog.getSaveFileName(self, 'save file',
                                                   xl_path,
