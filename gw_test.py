@@ -43,11 +43,15 @@ class MyThread(QThread):
         super().__init__()
         self.is_repeat = False
         self.gw_host = gw_host
+        self.tst_id = ""
 
     def run(self):
         logging.debug("---")
         # TODO: started with a test id(time + seq)
-        #logging.debug("gateway host ip : [%s]" % (self.gw_host))
+        # logging.debug("gateway host ip : [%s]" % (self.gw_host))
+        self.tst_id = time.strftime("TST_ID_%Y_%m_%d_%H_%M_%S")
+        self.up_test_id(self.tst_id)
+        logging.debug("a new start is start, Test-ID:[%s]" % (self.tst_id))
         self.up_test_start_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         self.test_status("GatewayTestThread start")
         self.req = http.HttpReq(self.gw_host,  self.test_step, self.confirm_msg)
@@ -96,6 +100,9 @@ class MyThread(QThread):
 
     def up_test_end_time(self, end_time):
         self.send_status("end_time", end_time)
+
+    def up_test_id(self, tst_id):
+        self.send_status("tst_id", tst_id)
 
     def test_step(self, step, result, info=None):
         step_msg = {"step": step, "result": result, "info": info}

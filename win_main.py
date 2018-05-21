@@ -155,7 +155,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
 
         self.groupBox_2 = QtWidgets.QGroupBox(self.centralwidget)
-        self.groupBox_2.setGeometry(QtCore.QRect(30, 370, 291, 191))
+        self.groupBox_2.setGeometry(QtCore.QRect(30, 370, 291, 211))
         self.groupBox_2.setObjectName("groupBox_2")
 
         self.label_3 = QtWidgets.QLabel(self.groupBox_2)
@@ -191,6 +191,13 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.onetest_end_time_line = QtWidgets.QLineEdit(self.groupBox_2)
         self.onetest_end_time_line.setGeometry(QtCore.QRect(80, 150, 181, 20))
         self.onetest_end_time_line.setObjectName("onetest_end_time_line")
+
+        self.onetest_id_lable = QtWidgets.QLabel(self.groupBox_2)
+        self.onetest_id_lable.setGeometry(QtCore.QRect(20, 180, 54, 12))
+        self.onetest_id_lable.setObjectName("onetest_id_lable")
+        self.onetest_id_line = QtWidgets.QLineEdit(self.groupBox_2)
+        self.onetest_id_line.setGeometry(QtCore.QRect(80, 180, 181, 20))
+        self.onetest_id_line.setObjectName("onetest_id_line")
 
 
         MainWindow.setCentralWidget(self.centralwidget)
@@ -275,6 +282,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.onetest_start_time_line.setText(_translate("MainWindow", ""))
         self.onetest_end_time_lable.setText(_translate("MainWindow", "结束时间"))
         self.onetest_end_time_line.setText(_translate("MainWindow", ""))
+        self.onetest_id_lable.setText(_translate("MainWindow", "测试ID"))
 
         self.menu.setTitle(_translate("MainWindow", "批次"))
         self.new_batch_act.setText(_translate("MainWindow", "新建批次"))
@@ -300,8 +308,8 @@ class Ui_MainWindow(QtWidgets.QWidget):
         row_back_color = QtGui.QColor(255, 255, 255)
         for r, row_list in enumerate(self.check_list_map):
             for c, item_v in enumerate(row_list["table_msg"]):
-                logging.debug(item_v)
-                logging.debug("%d, %d" % (r, c))
+                # logging.debug(item_v)
+                # logging.debug("%d, %d" % (r, c))
 
                 item = self.check_list.item(r, c)
                 if not reset: #only add to list at first init
@@ -397,6 +405,8 @@ class Ui_MainWindow(QtWidgets.QWidget):
             self.onetest_start_time_line.setText(_translate("MainWindow", status_msg["msg"]))
         elif status_msg["type"] == "end_time":
             self.onetest_end_time_line.setText(_translate("MainWindow", status_msg["msg"]))
+        elif status_msg["type"] == "tst_id":
+            self.onetest_id_line.setText(_translate("MainWindow", status_msg["msg"]))
         # self.progressBar.setProperty("value", int(msg) % 100)
 
     def updata_step(self, step_msg):
@@ -412,7 +422,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             return
         t_log_new = self.db_session.add_log(mac=self.gatewayMac.text(), operator=self.operator_lineEdit.text(),
                                     start_time=self.onetest_start_time_line.text(),
-                                    end_time=self.onetest_end_time_line.text(), test_id="HDG201804060001",
+                                    end_time=self.onetest_end_time_line.text(), test_id=self.onetest_id_line.text(),
                                     is_repeat=is_repeat,
                                     result=result_str, failed_info=failed_info_strs, note="")
 
@@ -424,6 +434,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         logging.debug("开始时间：%s" % self.onetest_start_time_line.text())
         logging.debug("结束时间：%s" % self.onetest_end_time_line.text())
         logging.debug("MAC:%s" % self.gatewayMac.text())
+        logging.debug("测试ID:%s" % self.onetest_id_line.text())
         failed_info = ""
         for row in range(self.rowCount):
             line = []
