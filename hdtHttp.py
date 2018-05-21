@@ -237,28 +237,31 @@ class HttpReq:
         else:
             return True, False
 
-    def _gateway_button_check(self, button):
+    def _gateway_button_check(self, button, retry):
         logging.debug("-")
-        resp_msg = self.cf_msg_func("button", button)
+        if not retry:
+            resp_msg = self.cf_msg_func("button", button)
+        else:
+            resp_msg = self.cf_msg_func("button-retry", button)
         logging.debug(resp_msg)
         if resp_msg['reply'] == 0:
             logging.error("test Failed and exit")
-            return False
+            return False, True
 
         timer_cont = 0
         while True:
             logging.debug("detect button timer %d" % (timer_cont))
             http_ret, button_ret = self._do_gateway_button_check(button)
             if not http_ret:
-                return False
+                return False, False
             if not button_ret:
                 if timer_cont >= 5:
-                    return False
+                    return False, False
                 time.sleep(1)  # TODO: 0.5s is better ?
                 timer_cont += 1
                 continue
             break
-        return True
+        return True, False
 
     def gateway_button_check(self):
         logging.debug("-")
@@ -266,12 +269,19 @@ class HttpReq:
         step_id = gwmap.GATEWAY_CHECK_STEP_ID_DEV_BUTTON_RESET
 
         for bt in gwmap.button_list:
-            if not self._gateway_button_check(bt):
-                self.step_up_func(step_id, 1)
-                return False
-            else:
-                self.step_up_func(step_id, 0)
-                step_id += 1
+            is_retry = False
+            while True:
+                ret, exit_ret = self._gateway_button_check(bt, is_retry)
+                if not ret:
+                    if not exit_ret:
+                        is_retry = True
+                        continue
+                    self.step_up_func(step_id, 1)
+                    return False
+                else:
+                    self.step_up_func(step_id, 0)
+                    step_id += 1
+                    break
         return True
 
     def gateway_check(self):
