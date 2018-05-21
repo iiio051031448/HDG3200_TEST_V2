@@ -469,19 +469,21 @@ class Ui_MainWindow(QtWidgets.QWidget):
                         "reply": 1 if reply == QMessageBox.Yes else 0}
             gw_test.wait_trigger_q.put(resp_msg)
         elif cf_msg['type'] == "button":
+            button_name = gwmap.button_list[cf_msg['data']]
             reply = QMessageBox.question(self,
                                      "消息框标题",
-                                     "如果 %s按键已经按下 请点击Yes，并保持按键5s到检测到按键被按下。如果点击No则结束测试"
-                                         % (gwmap.button_list[cf_msg['data']]),
+                                     "【%s】按键测试：请点击Yes, 按下【%s】键，并保持按键5s到检测到按键被按下。如果点击No则结束测试"
+                                         % (button_name, button_name),
                                      QMessageBox.Yes | QMessageBox.No)
             resp_msg = {"type": cf_msg['type'], "data": cf_msg['data'],
                         "reply": 1 if reply == QMessageBox.Yes else 0}
             gw_test.wait_trigger_q.put(resp_msg)
         elif cf_msg['type'] == "button-retry":
+            button_name = gwmap.button_list[cf_msg['data']]
             reply = QMessageBox.question(self,
                                      "消息框标题",
-                                     "没有检测到%s按键被按下，是否重新测试。是的话，请点击Yes，并保持按键5s到检测到按键被按下。如果点击No则结束测试"
-                                         % (gwmap.button_list[cf_msg['data']]),
+                                     "没有检测到【%s】键被按下，是否重新测试。是的话，请点击Yes，按下【%s】键，并保持按键5s到检测到按键被按下。如果点击No则结束测试"
+                                         % (button_name, button_name),
                                      QMessageBox.Yes | QMessageBox.No)
             resp_msg = {"type": cf_msg['type'], "data": cf_msg['data'],
                         "reply": 1 if reply == QMessageBox.Yes else 0}
