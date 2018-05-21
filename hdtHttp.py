@@ -31,6 +31,8 @@ class HttpReq:
         data = {"luci_username": "root", "luci_password": ""}
         try:
             f = requests.post(self.url, data, timeout=1, allow_redirects=False)
+            if not f.url or not f.status_code or not f.cookies.get('sysauth') or not f.headers['Location']:
+                return False
             logging.debug(f.url)
             logging.debug(f.status_code)
             logging.debug(f.cookies.get('sysauth'))
@@ -50,6 +52,7 @@ class HttpReq:
             return True
         except requests.exceptions.Timeout:
             logging.debug("connection timeout")
+            return False
 
     def gatewaydetect(self):
         while True:
@@ -57,6 +60,7 @@ class HttpReq:
                 break
             else:
                 logging.debug("login failed. try again")
+                time.sleep(1)
 
     def http_get(self, url, time_out):
         try:
