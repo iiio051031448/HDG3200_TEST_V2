@@ -89,7 +89,9 @@ class SqlSession:
             self.session.commit()
         else:
             hdt_logger.HDLogger.logger.debug("FINDED ITME : [%s]" % mac)
-            self.update_log(t_log, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note)
+            self.update_log(t_log, operator, start_time, end_time, test_id, is_repeat,
+                            t_log.result if result == "SKIP" else result,
+                            failed_info, note)
         return t_log
 
     def export_log_check(self, xl_path):
