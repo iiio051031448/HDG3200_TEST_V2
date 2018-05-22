@@ -298,6 +298,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 self.db_file_path = self.test_batch.get_db_file()
                 self.create_db_sesson(self.db_file_path)
                 self.show_batch_msg()
+                hdt_logger.HDLogger.update_file(self.test_batch.get_bat_id())
                 self.gw_ip_addr_lineEdit.setText(_translate("MainWindow",
                                                             self.conf.conf_list[tst_conf.TST_CONF_ITEM_GW_IP]))
                 self.operator_lineEdit.setText(_translate("MainWindow",
@@ -575,6 +576,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 self.db_file_path = self.test_batch.get_db_file()
                 self.create_db_sesson(self.db_file_path)
                 self.show_batch_msg()
+                hdt_logger.HDLogger.update_file(self.test_batch.get_bat_id())
                 self.conf.update_batch_file(filename)
 
 
@@ -592,6 +594,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 self.db_file_path = self.test_batch.get_db_file()
                 self.create_db_sesson(self.db_file_path)
                 self.show_batch_msg()
+                hdt_logger.HDLogger.update_file(self.test_batch.get_bat_id())
                 self.conf.update_batch_file(filename)
 
     def show_open_batch_warning(self):
