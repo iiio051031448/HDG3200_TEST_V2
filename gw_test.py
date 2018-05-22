@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import *
 import time
 import gw_check_map as gwmap
 import queue
+import hdt_logger
 
 def_host = "192.168.199.134"
 
@@ -17,7 +18,7 @@ wait_trigger_q = queue.Queue()
 
 class GatewayTest:
     def __init__(self):
-        logging.debug("-")
+        hdt_logger.HDLogger.logger.debug("-")
 
     def run(self):
         self.req = http.HttpReq(host)
@@ -46,27 +47,27 @@ class MyThread(QThread):
         self.tst_id = ""
 
     def run(self):
-        logging.debug("---")
+        hdt_logger.HDLogger.logger.debug("---")
         # TODO: started with a test id(time + seq)
         # logging.debug("gateway host ip : [%s]" % (self.gw_host))
         self.tst_id = time.strftime("TST_ID_%Y_%m_%d_%H_%M_%S")
         self.up_test_id(self.tst_id)
-        logging.debug("a new start is start, Test-ID:[%s]" % (self.tst_id))
+        hdt_logger.HDLogger.logger.debug("a new start is start, Test-ID:[%s]" % (self.tst_id))
         self.up_test_start_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         self.test_status("GatewayTestThread start")
         self.req = http.HttpReq(self.gw_host,  self.test_step, self.confirm_msg)
         self.test_status("检测网关中")
         self.req.gatewaydetect()
         mac=self.req.gateway_get_mac()
-        logging.debug("gateway MAC : %s", mac)
+        hdt_logger.HDLogger.logger.debug("gateway MAC : %s", mac)
         self.up_gw_mac(mac)
-        logging.debug("wait mac trigger ++++")
+        hdt_logger.HDLogger.logger.debug("wait mac trigger ++++")
         resp_msg = wait_trigger_q.get()
-        logging.debug("wait mac trigger ----")
-        logging.debug(resp_msg)
+        hdt_logger.HDLogger.logger.debug("wait mac trigger ----")
+        hdt_logger.HDLogger.logger.debug(resp_msg)
         self.is_repeat = resp_msg['is_repeat']
         if not resp_msg['data']:
-            logging.debug("stop check")
+            hdt_logger.HDLogger.logger.debug("stop check")
             self.end_test(0, "SKIP")
             return
 
@@ -77,11 +78,11 @@ class MyThread(QThread):
         test_result = self.req.test_start()
         self.up_test_end_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         if test_result:
-            logging.debug("test success.")
+            hdt_logger.HDLogger.logger.debug("test success.")
             self.end_test(0, "SUCCESS")
             #return True
         else :
-            logging.debug("test failed.")
+            hdt_logger.HDLogger.logger.debug("test failed.")
             self.end_test(1, "ERROR")
             #return False
 
@@ -117,9 +118,9 @@ class MyThread(QThread):
     def confirm_msg(self, type, data):
         cf_msg =  {"type": type, "data": data}
         self.test_confirm_signal.emit(cf_msg)
-        logging.debug("wait trigger ++++")
+        hdt_logger.HDLogger.logger.debug("wait trigger ++++")
         resp_msg = wait_trigger_q.get()
-        logging.debug("wait trigger ----")
+        hdt_logger.HDLogger.logger.debug("wait trigger ----")
         return resp_msg
 
 

@@ -8,10 +8,11 @@ import win_main
 import one_instace_box
 #import msg_box as win_main
 import time
+import hdt_logger
 
 class hdg3200_win:
     def __init__(self):
-        logging.debug("-")
+        hdt_logger.HDLogger.logger.debug("-")
 
     def show_win(self):
         self.app = QApplication(sys.argv)
@@ -21,7 +22,7 @@ class hdg3200_win:
         self.MainWindow.show()
 
         sys.exit(self.app.exec_())
-        logging.debug("--------------- EXITTING ---------------")
+        hdt_logger.HDLogger.logger.debug("--------------- EXITTING ---------------")
 
     def show_one_instance_warning_box(self):
         self.app = QApplication(sys.argv)
@@ -32,10 +33,10 @@ class hdg3200_win:
         sys.exit(self.app.exec_())
 
     def close_win(self):
-        logging.debug("-")
+        hdt_logger.HDLogger.logger.debug("-")
 
     def up_status(self, msg):
-        logging.debug("-")
+        hdt_logger.HDLogger.logger.debug("-")
         self.ui.status_set(msg)
 
 if __name__ == '__main__':

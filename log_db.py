@@ -5,9 +5,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 import EXl
+import hdt_logger
 
-LOG_FORMAT = "%(asctime)s - %(levelname)s - %(funcName)s - %(lineno)d - %(message)s "
-logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
+#LOG_FORMAT = "%(asctime)s - %(levelname)s - %(funcName)s - %(lineno)d - %(message)s "
+#logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
 Base = declarative_base()
 
@@ -75,19 +76,19 @@ class SqlSession:
         self.session.commit()
 
     def add_log(self, mac, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note=""):
-        logging.debug("mac:[%s], operator:[%s], start_time:[%s], end_time:[%s], test_id:[%s], is_repeat[%d], "
+        hdt_logger.HDLogger.logger.debug("mac:[%s], operator:[%s], start_time:[%s], end_time:[%s], test_id:[%s], is_repeat[%d], "
               "result[%s], failed_info[%s], note[%s]" %
               (mac, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note))
         t_log = self.find_item(mac)
         if not t_log:
-            logging.debug("NOT FIND ITME : [%s]" % mac)
+            hdt_logger.HDLogger.logger.debug("NOT FIND ITME : [%s]" % mac)
             t_log = TLog(mac=mac, operator=operator, start_time=start_time,
                          end_time=end_time, test_id=test_id, is_repeat=is_repeat,
                          result=result, failed_info=failed_info, note=note)
             self.session.add(t_log)
             self.session.commit()
         else:
-            logging.debug("FINDED ITME : [%s]" % mac)
+            hdt_logger.HDLogger.logger.debug("FINDED ITME : [%s]" % mac)
             self.update_log(t_log, operator, start_time, end_time, test_id, is_repeat, result, failed_info, note)
         return t_log
 
@@ -122,12 +123,12 @@ if __name__ == "__main__":
 
 
     t_log = sql_ses.find_item("11:22:33:44:58:6F")
-    logging.debug(t_log)
+    hdt_logger.HDLogger.logger.debug(t_log)
     xl_path = './' + EXl.EXPORT_XL_DIR_PATH + '/2018-04-23.xlsx'
     if t_log:
         sql_ses.updata_operator(t_log, "刘德华5")
     if sql_ses.export_log_check(xl_path):
-        logging.debug("exist")
+        hdt_logger.HDLogger.logger.debug("exist")
     sql_ses.export_log(xl_path)
 
 

@@ -13,6 +13,7 @@ import hdtHttp
 import tst_conf
 import EXl
 import logging
+import hdt_logger
 
 
 class GatewayTestThread(QtCore.QThread):
@@ -27,7 +28,7 @@ class GatewayTestThread(QtCore.QThread):
         for i in range(1000):
             #self.sec_changed_signal.emit(i)  # 发射信号
             # time.sleep(1)
-            logging.debug("---")
+            hdt_logger.HDLogger.logger.debug("---")
 
 
 class Ui_MainWindow(QtWidgets.QWidget):
@@ -291,7 +292,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.open_batch_act.setToolTip(_translate("MainWindow", "open_batch"))
 
         if self.conf.conf_list[tst_conf.TST_CONF_ITEM_BAT_FILE]:
-            logging.debug('-')
+            hdt_logger.HDLogger.logger.debug('-')
             self.test_batch = tst_batch.TBatch(self.conf.conf_list[tst_conf.TST_CONF_ITEM_BAT_FILE])
             if self.test_batch.load_batch_exist():
                 self.db_file_path = self.test_batch.get_db_file()
@@ -308,8 +309,8 @@ class Ui_MainWindow(QtWidgets.QWidget):
         row_back_color = QtGui.QColor(255, 255, 255)
         for r, row_list in enumerate(self.check_list_map):
             for c, item_v in enumerate(row_list["table_msg"]):
-                # logging.debug(item_v)
-                # logging.debug("%d, %d" % (r, c))
+                # hdt_logger.HDLogger.logger.debug(item_v)
+                # hdt_logger.HDLogger.logger.debug("%d, %d" % (r, c))
 
                 item = self.check_list.item(r, c)
                 if not reset: #only add to list at first init
@@ -352,13 +353,13 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.check_table_set_result(index, 1)
 
     def start_test(self):
-        logging.debug("-")
+        hdt_logger.HDLogger.logger.debug("-")
         if self.test_batch == None:
             self.show_open_batch_warning()
             return
         if self.test_thread:
             if not self.test_thread.isFinished():
-                logging.debug("测试还未完成，等几秒在继续")
+                hdt_logger.HDLogger.logger.debug("测试还未完成，等几秒在继续")
                 return
         self.retranslateCheckListItemUi()
         self.reset_gateway_status()
@@ -371,15 +372,15 @@ class Ui_MainWindow(QtWidgets.QWidget):
         self.test_thread.start()
 
     def stop_test(self):
-        logging.debug("-")
+        hdt_logger.HDLogger.logger.debug("-")
         if self.test_thread and not self.test_thread.isFinished():
-            logging.debug("try terminal test thread")
+            hdt_logger.HDLogger.logger.debug("try terminal test thread")
             self.test_thread.terminate()
 
             end_msg = {"result": 0, "info": "STOP", "is_repeat": self.test_thread.is_repeat}
             self.one_test_end(end_msg)
         else:
-            logging.debug("test thread is not started")
+            hdt_logger.HDLogger.logger.debug("test thread is not started")
 
     def status_set(self, status_msg):
         # status_msg : {"type": "status", "msg": "testing ..."}
@@ -390,7 +391,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             self.gatewayMac.setText(_translate("MainWindow", status_msg["msg"]))
             _log = self.db_session.find_item(status_msg["msg"])
             if not _log:
-                logging.debug(_log)
+                hdt_logger.HDLogger.logger.debug(_log)
                 # resp_msg : {"type": "mac_find", "data": 1,  "is_repeat": True}
                 resp_msg = {"type": "mac_find", "data": True, "is_repeat": False}
             else:
@@ -411,14 +412,14 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def updata_step(self, step_msg):
         # step_msg : {"step": 0, "result": 0, "info": "rssi : -100"}
-        logging.debug("step : %d, result : %d" % (step_msg["step"], step_msg["result"]))
+        hdt_logger.HDLogger.logger.debug("step : %d, result : %d" % (step_msg["step"], step_msg["result"]))
         for n, l in enumerate(gwmap.GatewayCheckListMap):
             if l["id"] == step_msg["step"]:
                 self.check_table_set_result(n, step_msg["result"], step_msg["info"])
 
     def one_test_end_save_record(self, result_str, failed_info_strs, is_repeat):
         if not self.db_session:
-            logging.error("db_session is not ready")
+            hdt_logger.HDLogger.logger.error("db_session is not ready")
             return
         t_log_new = self.db_session.add_log(mac=self.gatewayMac.text(), operator=self.operator_lineEdit.text(),
                                     start_time=self.onetest_start_time_line.text(),
@@ -428,19 +429,19 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def one_test_end(self, end_msg):
         # end_msg : {"result": 0, "info" : "SUCCESS", "is_repeat": True}
-        logging.debug("one_test_end, result : %d, info : %s is_repeat %d" %
+        hdt_logger.HDLogger.logger.debug("one_test_end, result : %d, info : %s is_repeat %d" %
               (end_msg["result"], end_msg["info"], end_msg['is_repeat']))
-        logging.debug("++++++++++++++++++++++")
-        logging.debug("开始时间：%s" % self.onetest_start_time_line.text())
-        logging.debug("结束时间：%s" % self.onetest_end_time_line.text())
-        logging.debug("MAC:%s" % self.gatewayMac.text())
-        logging.debug("测试ID:%s" % self.onetest_id_line.text())
+        hdt_logger.HDLogger.logger.debug("++++++++++++++++++++++")
+        hdt_logger.HDLogger.logger.debug("开始时间：%s" % self.onetest_start_time_line.text())
+        hdt_logger.HDLogger.logger.debug("结束时间：%s" % self.onetest_end_time_line.text())
+        hdt_logger.HDLogger.logger.debug("MAC:%s" % self.gatewayMac.text())
+        hdt_logger.HDLogger.logger.debug("测试ID:%s" % self.onetest_id_line.text())
         failed_info = ""
         for row in range(self.rowCount):
             line = []
             column = 0
             for column in range(self.ColumnCount):
-                # logging.debug("%d, %d" % (row, column))
+                # hdt_logger.HDLogger.logger.debug("%d, %d" % (row, column))
                 item = self.check_list.item(row, column)
                 # line = line + " " + item.text()
                 if column == 2 and item.text() == "wait":
@@ -448,7 +449,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 line.extend([item.text()])
             if column == 2:
                 break
-            logging.debug("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))
+            hdt_logger.HDLogger.logger.debug("%-25s %-25s %-15s %-15s" % (line[0], line[1], line[2], line[3]))
             if end_msg["result"] == 1:
                 failed_info = failed_info + ("%-25s %-25s %-15s %-15s\n" % (line[0], line[1], line[2], line[3]))
 
@@ -466,11 +467,11 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
         self.pBtTestStart.setEnabled(True)
         # if not self.test_thread.isFinished():
-        #    logging.debug("test_thread is still running")
+        #    hdt_logger.HDLogger.logger.debug("test_thread is still running")
 
     def test_confirm(self,cf_msg):
         # cf_msg : {"type": "led_check", "data": "red"}
-        logging.debug(cf_msg)
+        hdt_logger.HDLogger.logger.debug(cf_msg)
         if cf_msg['type'] == "led":
             reply = QMessageBox.question(self,
                                      "消息框标题",
@@ -520,7 +521,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                         try:
                             _m_int = int(_m, 16)
                         except:
-                            logging.debug("translate to integer failed.")
+                            hdt_logger.HDLogger.logger.debug("translate to integer failed.")
                             _box_notice = _box_notice_err
                             continue
                     break
@@ -539,7 +540,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
         filename, _ = QFileDialog.getSaveFileName(self, 'save file',
                                                   xl_path,
                                                   'Excel (*.xlsx);;All Files (*)')
-        logging.debug("xl_path = " + xl_path)
+        hdt_logger.HDLogger.logger.debug("xl_path = " + xl_path)
         if (self.db_session.export_log_check(xl_path)):
             reply = QMessageBox.information(self, "消息框标题", "该文件已存在是否覆盖？",
                                             QMessageBox.Yes | QMessageBox.No)
@@ -554,21 +555,21 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
     def show_batch_msg(self):
         _translate = QtCore.QCoreApplication.translate
-        #logging.debug (self.test_batch.t_bat_msg)
+        #hdt_logger.HDLogger.logger.debug (self.test_batch.t_bat_msg)
         self.tst_bat_id_eline.setText(_translate("MainWindow", self.test_batch.get_bat_id()))
         self.tst_bat_start_time_eline.setText(_translate("MainWindow", self.test_batch.get_bat_time()))
         self.tst_bat_success_count_eline.setText(_translate("MainWindow", str(self.test_batch.get_success_count())))
         self.tst_bat_failed_count_eline.setText(_translate("MainWindow", str(self.test_batch.get_failed_count())))
 
     def create_batch(self):
-        logging.debug("create_batch")
+        hdt_logger.HDLogger.logger.debug("create_batch")
         if not tst_batch.check_bats_dir():
             return
         filename, _ = QFileDialog.getSaveFileName(self, 'save file',
                                                   './tst_batchs/HDGZ3200_%s.tbat' % (time.strftime("%Y%m%d_%H%M%S")),
                                                   'Test Batch Files (*.tbat);;All Files (*)')
         if filename:
-            logging.debug(filename)
+            hdt_logger.HDLogger.logger.debug(filename)
             self.test_batch = tst_batch.TBatch(filename)
             if self.test_batch.load_batch_new():
                 self.db_file_path = self.test_batch.get_db_file()
@@ -578,14 +579,14 @@ class Ui_MainWindow(QtWidgets.QWidget):
 
 
     def open_batch(self):
-        logging.debug("open_batch")
+        hdt_logger.HDLogger.logger.debug("open_batch")
         if not tst_batch.check_bats_dir():
             return False
         filename, _ = QFileDialog.getOpenFileName(self, 'Open file',
                                                   './' + tst_batch.TST_BATCH_BATS_DIR_PATH + '/',
                                                   'Test Batch Files (*.tbat);;All Files (*)')
         if filename:
-            logging.debug(filename)
+            hdt_logger.HDLogger.logger.debug(filename)
             self.test_batch = tst_batch.TBatch(filename)
             if self.test_batch.load_batch_exist():
                 self.db_file_path = self.test_batch.get_db_file()
@@ -599,12 +600,12 @@ class Ui_MainWindow(QtWidgets.QWidget):
                                     "还没有打开批次，请新建一个批次或打开已有的批次",
                                     QMessageBox.Yes)
         if reply == QMessageBox.Yes:
-            logging.debug("Yes Yes Yes Yes")
+            hdt_logger.HDLogger.logger.debug("Yes Yes Yes Yes")
         else:
-            logging.debug("No No No No")
+            hdt_logger.HDLogger.logger.debug("No No No No")
 
     def set_gw_operator(self):
-        logging.debug("-")
+        hdt_logger.HDLogger.logger.debug("-")
         _translate = QtCore.QCoreApplication.translate
         value, ok = QInputDialog.getText(self, "输入框标题", "请输入操作者信息\n\n操作者信息:",
                                          QLineEdit.Normal, self.operator_lineEdit.text())
@@ -613,7 +614,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
             self.conf.update_operator(value)
 
     def set_gw_ip_addr(self):
-        logging.debug("-")
+        hdt_logger.HDLogger.logger.debug("-")
         _translate = QtCore.QCoreApplication.translate
         value, ok = QInputDialog.getText(self, "输入框标题", "请输入网关IP地址\n\nIP:",
                                          QLineEdit.Normal, self.gw_ip_addr_lineEdit.text())

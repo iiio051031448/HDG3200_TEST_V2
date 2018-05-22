@@ -2,16 +2,20 @@ import logging
 import win
 import instance_lock as i_lock
 import atexit
+import hdt_logger
 
 
-LOG_FORMAT="%(asctime)s - %(levelname)s - %(funcName)s - %(lineno)d - %(message)s "
-logging.basicConfig(level=logging.DEBUG, format=LOG_FORMAT)
 
 one_lock = None
 
+#hdt_logger.debug("test start")
+#logging.FileHandler("system.log")
+#log_format = "%(asctime)s - %(levelname)s - %(funcName)s - %(lineno)d - %(message)s "
+#logging.basicConfig(level=logging.DEBUG, format=log_format, filename="system.log", filemode="w")
+hdt_logger.HDLogger.logger.debug("=======")
 
 def exit_cleanup():
-    logging.error("=======exit_cleanup========")
+    hdt_logger.HDLogger.logger.error("=======exit_cleanup========")
     if one_lock:
         one_lock.unlock()
 
@@ -25,7 +29,7 @@ if not one_lock.is_locked():
 else:
     main_win.show_one_instance_warning_box()
 
-logging.debug("--------------- EXITTING ---------------")
+hdt_logger.HDLogger.logger.debug("--------------- EXITTING ---------------")
 
 one_lock.unlock()
 

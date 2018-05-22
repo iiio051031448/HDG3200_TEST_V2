@@ -3,6 +3,7 @@
 import logging
 import os
 import json
+import hdt_logger
 
 TST_CONF_FILE="tst.conf"
 
@@ -13,7 +14,7 @@ TST_CONF_ITEM_GW_IP="gw_ip"
 
 class TstConf:
     def __init__(self):
-        logging.debug('-')
+        hdt_logger.HDLogger.logger.debug('-')
         self.conf_list = None
         if not os.path.exists(TST_CONF_FILE):
             self.conf_list = {"batch_file": "",
@@ -26,7 +27,7 @@ class TstConf:
         else:
             self.file = open(TST_CONF_FILE, "r+")
             conf_json_str = self.file.read()
-            logging.debug(conf_json_str)
+            hdt_logger.HDLogger.logger.debug(conf_json_str)
             self.conf_list = json.loads(conf_json_str)
             self.file.close()
 
