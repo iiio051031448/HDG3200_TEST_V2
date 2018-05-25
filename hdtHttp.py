@@ -29,7 +29,7 @@ class HttpReq:
         self.ra_mac = None
 
     def gateway_login(self):
-        data = {"luci_username": "root", "luci_password": ""}
+        data = {"luci_username": "root", "luci_password": "TYSmartCC2017"}
         try:
             f = requests.post(self.url, data, timeout=1, allow_redirects=False)
             if not f.url or not f.status_code or not f.cookies.get('sysauth') or not f.headers['Location']:
@@ -66,6 +66,9 @@ class HttpReq:
     def http_get(self, url, time_out):
         try:
             get = requests.get(url, timeout=time_out, allow_redirects=False, cookies={'sysauth': self.cookie})
+            hdt_logger.HDLogger.logger.debug("HTTP get resp status code:[%d]" % get.status_code)
+            if get.status_code != 200:
+                return None
             return get
         except requests.exceptions.Timeout:
             hdt_logger.HDLogger.logger.error("connection timeout")
@@ -76,8 +79,8 @@ class HttpReq:
         purl = self.furl + "/admin/factory/mac_check"
         # {"status":"OK","ret":[{"mac":"D0:6F:4A:F3:A4:BF","ifname":"ra"},{"mac":"D0:6F:4A:F3:A4:C0","ifname":"lan"},{"mac":"D0:6F:4A:F3:A4:C1","ifname":"wan"}],"value":"001"}
         p = self.http_get(purl, 5)
-        hdt_logger.HDLogger.logger.debug(p.text)
         if p and p.text:
+            hdt_logger.HDLogger.logger.debug(p.text)
             ret_json = json.loads(p.text)
             if ret_json:
                 for it in ret_json['ret']:
@@ -149,6 +152,8 @@ class HttpReq:
         for check in mod_check_list:
             purl = self.furl + "/admin/factory/module_check/" + check
             p = self.http_get(purl, 5)
+            if not p:
+                return False
             if not mod_check_actions[check](p.text, check):
                 # -------- for pingcheck need retry --------
                 retry_count = 0
@@ -158,6 +163,8 @@ class HttpReq:
                             time.sleep(2)
                             retry_count += 1
                             p = self.http_get(purl, 5)
+                            if not p:
+                                return False
                             if not mod_check_actions[check](p.text, check):
                                 hdt_logger.HDLogger.logger.error("check failed. will try again. retry_count:[%d]", retry_count)
                             else:
@@ -174,6 +181,8 @@ class HttpReq:
     def gateway_port_check(self):
         purl = self.furl + "/admin/factory/" + "port_test"
         p = self.http_get(purl, 5)
+        if not p or not p.text:
+            return False
         hdt_logger.HDLogger.logger.debug(p.text)
 
         resp_json = json.loads(p.text)
@@ -187,11 +196,10 @@ class HttpReq:
             self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_DEV_PORT, 1)
             return False
 
-
     def _gateway_led_check_set_led_color(self, color):
         purl = self.furl + "/admin/factory/led_test/" + color
         p = self.http_get(purl, 5)
-        if not p.text:
+        if not p or not p.text:
             hdt_logger.HDLogger.logger.error("set led color failed")
             return False
         hdt_logger.HDLogger.logger.debug(p.text)
@@ -227,7 +235,7 @@ class HttpReq:
     def _do_gateway_button_check(self, button):
         purl = self.furl + "/admin/factory/button_test/" + button
         p = self.http_get(purl, 5)
-        if not p.text:
+        if not p or not p.text:
             hdt_logger.HDLogger.logger.error("get [%s] button status failed." % (button))
             return False, False
         hdt_logger.HDLogger.logger.debug(p.text)
@@ -297,7 +305,7 @@ class HttpReq:
     def system_check_factory_info_check(self):
         purl = self.furl + "/admin/factory/data_check"
         p = self.http_get(purl, 5)
-        if not p.text:
+        if not p or not p.text:
             hdt_logger.HDLogger.logger.error("get factory info failed.")
             return False
         hdt_logger.HDLogger.logger.debug(p.text)
@@ -322,7 +330,7 @@ class HttpReq:
     def system_check_mac_check(self):
         purl = self.furl + "/admin/factory/mac_check"
         p = self.http_get(purl, 5)
-        if not p.text:
+        if not p or not p.text:
             hdt_logger.HDLogger.logger.error("get mac list failed.")
             return False
         hdt_logger.HDLogger.logger.debug(p.text)
@@ -362,7 +370,7 @@ class HttpReq:
 
         purl = self.furl + "/admin/factory/data_set?dname=sn&dvalue=" + sn
         p = self.http_get(purl, 5)
-        if not p.text:
+        if not p or not p.text:
             hdt_logger.HDLogger.logger.error("data_set failed.")
             return False
         hdt_logger.HDLogger.logger.debug(p.text)
@@ -406,7 +414,7 @@ class HttpReq:
         hdt_logger.HDLogger.logger.debug('-')
         purl = self.furl + "/admin/factory/data_set?dname=factory_reset&dvalue=done"
         p = self.http_get(purl, 5)
-        if not p.text:
+        if not p or not p.text:
             hdt_logger.HDLogger.logger.error("data_set failed.")
             return False
         hdt_logger.HDLogger.logger.debug(p.text)
@@ -424,7 +432,7 @@ class HttpReq:
         hdt_logger.HDLogger.logger.debug('-')
         purl = self.furl + "/admin/factory/reset"
         p = self.http_get(purl, 5)
-        if not p.text:
+        if not p or not p.text:
             hdt_logger.HDLogger.logger.error("data_set failed.")
             return False
         hdt_logger.HDLogger.logger.debug(p.text)

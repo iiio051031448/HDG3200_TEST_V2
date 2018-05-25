@@ -428,15 +428,7 @@ class Ui_MainWindow(QtWidgets.QWidget):
                                     is_repeat=is_repeat,
                                     result=result_str, failed_info=failed_info_strs, note="")
 
-    def one_test_end(self, end_msg):
-        # end_msg : {"result": 0, "info" : "SUCCESS", "is_repeat": True}
-        hdt_logger.HDLogger.logger.debug("one_test_end, result : %d, info : %s is_repeat %d" %
-              (end_msg["result"], end_msg["info"], end_msg['is_repeat']))
-        hdt_logger.HDLogger.logger.debug("++++++++++++++++++++++")
-        hdt_logger.HDLogger.logger.debug("开始时间：%s" % self.onetest_start_time_line.text())
-        hdt_logger.HDLogger.logger.debug("结束时间：%s" % self.onetest_end_time_line.text())
-        hdt_logger.HDLogger.logger.debug("MAC:%s" % self.gatewayMac.text())
-        hdt_logger.HDLogger.logger.debug("测试ID:%s" % self.onetest_id_line.text())
+    def one_test_end_save(self, end_msg):
         failed_info = ""
         for row in range(self.rowCount):
             line = []
@@ -465,6 +457,21 @@ class Ui_MainWindow(QtWidgets.QWidget):
             _cnt = self.test_batch.get_failed_count() + 1
             self.tst_bat_failed_count_eline.setText(_translate("MainWindow", str(_cnt)))
             self.test_batch.upload_batch(failed_count=_cnt)
+
+    def one_test_end(self, end_msg):
+        # end_msg : {"result": 0, "info" : "SUCCESS", "is_repeat": True}
+        hdt_logger.HDLogger.logger.debug("one_test_end, result : %d, info : %s is_repeat %d" %
+              (end_msg["result"], end_msg["info"], end_msg['is_repeat']))
+        hdt_logger.HDLogger.logger.debug("++++++++++++++++++++++")
+        hdt_logger.HDLogger.logger.debug("开始时间：%s" % self.onetest_start_time_line.text())
+        hdt_logger.HDLogger.logger.debug("结束时间：%s" % self.onetest_end_time_line.text())
+        hdt_logger.HDLogger.logger.debug("MAC:%s" % self.gatewayMac.text())
+        hdt_logger.HDLogger.logger.debug("测试ID:%s" % self.onetest_id_line.text())
+        if self.gatewayMac.text() != "":
+            if end_msg['is_repeat'] == 1 and end_msg["info"] == "SKIP":
+                hdt_logger.HDLogger.logger.debug("skip a repeat device [mac:%s]" % self.gatewayMac.text())
+            else:
+                self.one_test_end_save(end_msg)
 
         self.pBtTestStart.setEnabled(True)
         # if not self.test_thread.isFinished():
