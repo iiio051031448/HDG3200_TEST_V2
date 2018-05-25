@@ -396,9 +396,10 @@ class Ui_MainWindow(QtWidgets.QWidget):
                 # resp_msg : {"type": "mac_find", "data": 1,  "is_repeat": True}
                 resp_msg = {"type": "mac_find", "data": True, "is_repeat": False}
             else:
+
                 reply = QMessageBox.question(self,
                                              "消息框标题",
-                                             "该网关已经测试过，是否再次测试？",
+                                             "该网关已经测试过(%s)，是否再次测试？" % (_log.result),
                                              QMessageBox.Yes | QMessageBox.No)
                 resp_msg = {"type": "mac_find", "data": True if reply == QMessageBox.Yes else False, "is_repeat": True}
 
