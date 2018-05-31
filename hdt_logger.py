@@ -2,6 +2,7 @@
 
 import logging
 from logging import handlers
+import os
 
 LOG_DIR="log"
 
@@ -51,7 +52,8 @@ class Logger(object):
         self.th.setFormatter(self.format_str)
         self.logger.addHandler(self.th)
 
-
+if not os.path.exists(LOG_DIR):
+    os.mkdir(LOG_DIR)
 HDLogger = Logger(LOG_DIR + '/system.log',level='debug')
 print("======== HDLogger init ========")
 
