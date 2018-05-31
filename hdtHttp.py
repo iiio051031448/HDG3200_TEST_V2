@@ -27,6 +27,16 @@ class HttpReq:
         self.step_up_func = step_up_func
         self.cf_msg_func = cf_msg_func
         self.ra_mac = None
+        self.test_status = None
+
+    def updata_test_status_box(self, msg):
+        if self.test_status:
+            self.test_status(msg)
+
+    def update_test_step(self, step, result, info=None):
+        if self.step_up_func:
+            self.step_up_func(step, result, info)
+        self.updata_test_status_box(gwmap.GatewayCheckListMap[step]["table_msg"][0])
 
     def gateway_login(self):
         data = {"luci_username": "root", "luci_password": "TYSmartCC2017"}
@@ -97,22 +107,22 @@ class HttpReq:
         if errorindex >= 0:
             hdt_logger.HDLogger.logger.error(self.step + " - " + action + " check error")
             if action == "pingcheck":
-                self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 1)
+                self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 1)
             return False
         else:
             hdt_logger.HDLogger.logger.debug(self.step + " - " + action + " check success")
             if action == "pingcheck":
-                self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 0)
+                self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_CONN, 0)
             return True
 
     def mod_check_sn_check(self, resp, action):
         # {"status":"OK","ret":"GET MOD INFO SUCCESS","action":"sn_check","value":"001"}
         hdt_logger.HDLogger.logger.debug(resp)
         if self.mod_check_pingcheck(resp, action):
-            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 0)
+            self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 0)
             return True
         else:
-            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 1)
+            self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_SN, 1)
             return False
 
     def mod_check_rssi(self, resp, action):
@@ -124,21 +134,21 @@ class HttpReq:
         rssi_v = int(ret_str.split(':')[1])
         if rssi_v < -45:
             hdt_logger.HDLogger.logger.error(self.step + " - " "rssi check error")
-            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 1, ret_str)
+            self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 1, ret_str)
             return False
         else:
             hdt_logger.HDLogger.logger.error(self.step + " - " "rssi check success")
-            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 0)
+            self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_RSSI, 0)
             return True
 
     def mod_check_reset(self, resp, action):
         # {"status":"OK","ret":"MODULE RESET SUCCESS","action":"reset","value":"001"}
         hdt_logger.HDLogger.logger.debug(resp)
         if self.mod_check_pingcheck(resp, action):
-            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_REST, 0)
+            self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_REST, 0)
             return True
         else:
-            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_MOD_REST, 1)
+            self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_MOD_REST, 1)
             return False
 
     def mod_check(self):
@@ -160,14 +170,16 @@ class HttpReq:
                 if check == "pingcheck":
                     while True:
                         if retry_count < 5:
+                            self.updata_test_status_box("模块通信测试失败，第 %d 次尝试" % (retry_count))
+                            hdt_logger.HDLogger.logger.error(
+                                "check failed. will try again. retry_count:[%d]" % (retry_count))
                             time.sleep(2)
                             retry_count += 1
                             p = self.http_get(purl, 5)
                             if not p:
-                                return False
-                            if not mod_check_actions[check](p.text, check):
-                                hdt_logger.HDLogger.logger.error("check failed. will try again. retry_count:[%d]", retry_count)
-                            else:
+                               return False
+                            if mod_check_actions[check](p.text, check):
+                                self.updata_test_status_box("模块通信测试成功")
                                 break
                         else:
                             # retry too many time, treat as an error.
@@ -189,11 +201,11 @@ class HttpReq:
         # ret = resp_json["ret"]
         if int(resp_json["ret"]) == 0:
             hdt_logger.HDLogger.logger.debug("port check success")
-            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_DEV_PORT, 0)
+            self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_DEV_PORT, 0)
             return True
         else:
             hdt_logger.HDLogger.logger.debug("port check failed.")
-            self.step_up_func(gwmap.GATEWAY_CHECK_STEP_ID_DEV_PORT, 1)
+            self.update_test_step(gwmap.GATEWAY_CHECK_STEP_ID_DEV_PORT, 1)
             return False
 
     def _gateway_led_check_set_led_color(self, color):
@@ -224,10 +236,10 @@ class HttpReq:
             if self._gateway_led_check_set_led_color(color):
                 # wait user input
                 hdt_logger.HDLogger.logger.debug("set color over")
-                self.step_up_func(step_id, 0)
+                self.update_test_step(step_id, 0)
             else:
                 hdt_logger.HDLogger.logger.debug("set color failed.")
-                self.step_up_func(step_id, 1)
+                self.update_test_step(step_id, 1)
                 return False
             step_id = step_id + 1
         return True
@@ -285,10 +297,10 @@ class HttpReq:
                     if not exit_ret:
                         is_retry = True
                         continue
-                    self.step_up_func(step_id, 1)
+                    self.update_test_step(step_id, 1)
                     return False
                 else:
-                    self.step_up_func(step_id, 0)
+                    self.update_test_step(step_id, 0)
                     step_id += 1
                     break
         return True
@@ -389,22 +401,22 @@ class HttpReq:
         hdt_logger.HDLogger.logger.debug("-")
         step_id = gwmap.GATEWAY_CHECK_STEP_ID_SYS_READ_DATA
         if not self.system_check_factory_info_check():
-            self.step_up_func(step_id, 1)
+            self.update_test_step(step_id, 1)
             return False
         else:
-            self.step_up_func(step_id, 0)
+            self.update_test_step(step_id, 0)
         step_id += 1
         if not self.system_check_mac_check():
-            self.step_up_func(step_id, 1)
+            self.update_test_step(step_id, 1)
             return False
         else:
-            self.step_up_func(step_id, 0)
+            self.update_test_step(step_id, 0)
         step_id += 1
         if not self.system_check_write_sn():
-            self.step_up_func(step_id, 1)
+            self.update_test_step(step_id, 1)
             return False
         else:
-            self.step_up_func(step_id, 0)
+            self.update_test_step(step_id, 0)
 
         return True
 
@@ -448,16 +460,16 @@ class HttpReq:
         hdt_logger.HDLogger.logger.debug("-")
         step_id = gwmap.GATEWAY_CHECK_STEP_ID_SYS_END_MARK
         if not self.finish_test_write_factory_flag():
-            self.step_up_func(step_id, 1)
+            self.update_test_step(step_id, 1)
             return False
         else:
-            self.step_up_func(step_id, 0)
+            self.update_test_step(step_id, 0)
         step_id += 1
         if not self.finish_test_reset_data():
-            self.step_up_func(step_id, 1)
+            self.update_test_step(step_id, 1)
             return False
         else:
-            self.step_up_func(step_id, 0)
+            self.update_test_step(step_id, 0)
 
         return True
 
@@ -466,20 +478,20 @@ class HttpReq:
 
 
     def test_start(self):
-       # for (step, func) in self.test_list.items():
-       #     self.step = step
-       #     func()
-        ''''''
+        self.updata_test_status_box("模块测试 ...")
         if not self.test_list[HDG_TEST_STEP_1_MOD_TEST]():
             hdt_logger.HDLogger.logger.debug("mod check failed.")
             return False
 
+        self.updata_test_status_box("网关测试 ...")
         if not self.test_list[HDG_TEST_STEP_2_GATEWAY_TEST]():
             return False
 
+        self.updata_test_status_box("系统测试 ...")
         if not self.test_list[HDG_TEST_STEP_3_SYSTEM_TEST]():
             return False
 
+        self.updata_test_status_box("结束测试 ...")
         if not self.test_list[HDG_TEST_STEP_4_FINISH_TEST]():
             return False
 

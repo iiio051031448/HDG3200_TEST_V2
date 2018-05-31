@@ -56,11 +56,13 @@ class MyThread(QThread):
         self.up_test_start_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         self.test_status("GatewayTestThread start")
         self.req = http.HttpReq(self.gw_host,  self.test_step, self.confirm_msg)
+        self.req.test_status = self.test_status
         self.test_status("检测网关中")
         self.req.gatewaydetect()
         mac=self.req.gateway_get_mac()
         hdt_logger.HDLogger.logger.debug("gateway MAC : %s", mac)
         self.up_gw_mac(mac)
+        self.test_status("检测到网关开，等待确认操作")
         hdt_logger.HDLogger.logger.debug("wait mac trigger ++++")
         resp_msg = wait_trigger_q.get()
         hdt_logger.HDLogger.logger.debug("wait mac trigger ----")
@@ -74,7 +76,7 @@ class MyThread(QThread):
 
         # TODO: if failed.
 
-        self.test_status("检测到网关开始测试")
+        self.test_status("开始测试 ...")
         test_result = self.req.test_start()
         self.up_test_end_time(time.strftime("%Y-%m-%d %H:%M:%S"))
         if test_result:

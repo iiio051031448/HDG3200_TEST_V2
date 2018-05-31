@@ -15,7 +15,7 @@ CALL %SCRIPTS_ROOT%\activate.bat
 REM ECHO %PATH%
 
 REM ======== Start service ========
-%SCRIPTS_ROOT%\pyinstaller.exe --noconfirm --onefile --distpath=dist --paths=E:\mt7628SDK\生产测试\HDG3200_TEST_V2\env win.py  -w
+%SCRIPTS_ROOT%\pyinstaller.exe --noconfirm --onefile --distpath=dist --paths=E:\mt7628SDK\生产测试\HDG3200_TEST_V2\env hdg3200_test.py
 
 :COMPLETE
 PAUSE
